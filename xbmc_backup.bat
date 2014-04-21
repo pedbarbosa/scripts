@@ -8,7 +8,8 @@ SET backup_dir="%userprofile%\Google Drive\Backups\MySQL"
 SET rar_bin="C:\Program Files\WinRAR\rar.exe"
 
 REM Destination for machines set with YYYY-MM-DD
-SET rar_backup=%backup_dir%\xbmc-%date:~0,4%%date:~5,2%%date:~8,2%-%time:~0,2%%time:~3,2%.sql.rar
+SET hour=%time: =0%
+SET rar_backup=%backup_dir%\xbmc-%date:~0,4%%date:~5,2%%date:~8,2%-%hour:~0,2%%time:~3,2%.sql.rar
 
 %mysql_bin%\mysqldump -u %mysql_user% --password=%mysql_pass% -B mymusic32 myvideos75 > %TEMP%\backup.sql
 IF %errorlevel% == 0 (
