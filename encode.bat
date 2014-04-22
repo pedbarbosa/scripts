@@ -7,9 +7,9 @@ SET options=-vcodec libx264 -crf 23 -preset veryslow -acodec libvo_aacenc -ab 12
 
 for %%i in (%source%\*.*) do (
     "%ffmpeg%" -i "%%i" %options% "%destination%\%%~ni.mkv"
-)
-if %errorlevel% == 0 (
-    move "%destination%\%%~ni.mkv" %rubbish%
-) else (
-    echo Encoding failed :(
+    if %errorlevel% == 0 (
+        move "%%i" %rubbish%
+    ) else (
+        echo Encoding failed :(
+    )
 )
