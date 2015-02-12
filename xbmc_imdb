@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#!/usr/bin/env python2.7
 
 import getopt
 import mysql.connector
@@ -92,7 +92,7 @@ except getopt.GetoptError as err:
         print(err)
         usage()
         sys.exit(2)
-start = 0
+start = 360
 debug = 0
 for o, a in opts:
     if o in ("-h", "--help"):
@@ -109,7 +109,7 @@ cnx = mysql.connector.connect(user='xbmc', password='xbmc',
 cursor = cnx.cursor(buffered=True)
 update = cnx.cursor()
 
-query = "SELECT idMovie, c00, c04, c05, c07, c09 from movie ORDER BY c00 LIMIT %s,100" % start
+query = "SELECT idMovie, c00, c04, c05, c07, c09 from movie ORDER BY c00 LIMIT %s,2000" % start
 if debug == 1:
     print "Executing SQL: %s" % query
 cursor.execute(query)
