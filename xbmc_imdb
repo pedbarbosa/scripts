@@ -2,6 +2,7 @@
 
 import getopt
 import mysql.connector
+import re
 import sys
 import urllib2
 from HTMLParser import HTMLParser
@@ -69,6 +70,7 @@ def movie_update(title, rating, old_votes, xbmc_year, parser):
     elif old_votes < new_votes:
         new_votes = color.LIGHTCYAN + "%s" % new_votes + color.END
 
+    title = re.sub(r'[^\x00-\x7F]+',' ', title) 
     title = color.GREEN + color.UNDERLINE + title + " (" + xbmc_year + ")" + color.END
 
     if (old_rating == new_rating and old_votes == new_votes):
@@ -92,7 +94,7 @@ except getopt.GetoptError as err:
         print(err)
         usage()
         sys.exit(2)
-start = 360
+start = 378
 debug = 0
 for o, a in opts:
     if o in ("-h", "--help"):
