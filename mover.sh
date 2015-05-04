@@ -2,16 +2,6 @@
 LOCKFILE=/tmp/mover.lock
 CONFIGFILE=~/.mover
 
-# Check if the script is already running
-if [[ -e ${LOCKFILE} ]] && kill -0 `cat ${LOCKFILE}`; then
-    echo "Error: Lock file present at $LOCKFILE"
-    exit
-fi
-
-# Create lock file
-trap "rm -f ${LOCKFILE}; exit" INT TERM EXIT
-echo $$ > ${LOCKFILE}
-
 # Check configuration file
 if [[ ! -e ${CONFIGFILE} ]]; then
     echo "Error: Config file missing"
@@ -19,6 +9,16 @@ if [[ ! -e ${CONFIGFILE} ]]; then
 else
     source ${CONFIGFILE}
 fi
+
+# Check if the script is already running
+if [[ -e ${LOCKFILE} ]] && kill -0 `cat ${LOCKFILE}`; then
+    echo "Refusing to run, found lock file at $LOCKFILE" >> $LOGFILE
+    exit
+fi
+
+# Create lock file
+trap "rm -f ${LOCKFILE}; exit" INT TERM EXIT
+echo $$ > ${LOCKFILE}
 
 # Start logging
 echo "----------------------------" >> $LOGFILE
@@ -32,7 +32,7 @@ fi
 
 # Check if remote computer is available
 if [[ ! -d $REMOTEDIR ]]; then
-    echo "Remote computer not available"
+    echo "Remote computer not available" >> $LOGFILE
     exit 1
 fi
 
