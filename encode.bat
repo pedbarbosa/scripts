@@ -10,6 +10,6 @@ for %%i in (%source%\*.*) do (
     if %errorlevel% == 0 (
         move "%%i" %rubbish%
     ) else (
-        echo Encoding failed :(
+        echo Encoding failed, return code %errorlevel% :(
     )
 )
