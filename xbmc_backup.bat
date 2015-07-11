@@ -11,7 +11,7 @@ REM Destination for machines set with YYYY-MM-DD
 SET hour=%time: =0%
 SET rar_backup=%backup_dir%\xbmc-%date:~0,4%%date:~5,2%%date:~8,2%-%hour:~0,2%%time:~3,2%.sql.rar
 
-%mysql_bin%\mysqldump -u %mysql_user% --password=%mysql_pass% -B mymusic32 myvideos75 > %TEMP%\backup.sql
+%mysql_bin%\mysqldump -u %mysql_user% --password=%mysql_pass% -B mymusic48 myvideos90 > %TEMP%\backup.sql
 IF %errorlevel% == 0 (
     %rar_bin% a -m5 -s %rar_backup% %TEMP%\backup.sql
     del %TEMP%\backup.sql
