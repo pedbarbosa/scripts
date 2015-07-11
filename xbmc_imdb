@@ -85,7 +85,7 @@ def movie_error(title, message):
 
 
 def usage():
-    print "Switches: -h help -s start (debug not implemented yet)"
+    print "Switches: -h help -s start -d debug"
 
 
 try:
@@ -100,6 +100,8 @@ for o, a in opts:
     if o in ("-h", "--help"):
         usage()
         sys.exit()
+    elif o in ("-d", "--debug"):
+        debug = 1
     elif o in ("-s", "--start"):
         start = a
     else:
