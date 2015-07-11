@@ -94,7 +94,7 @@ except getopt.GetoptError as err:
         print(err)
         usage()
         sys.exit(2)
-start = 378
+start = 0
 debug = 0
 for o, a in opts:
     if o in ("-h", "--help"):
@@ -107,11 +107,11 @@ for o, a in opts:
 
 cnx = mysql.connector.connect(user='xbmc', password='xbmc',
                               host='192.168.2.200',
-                              database='myvideos78')
+                              database='myvideos90')
 cursor = cnx.cursor(buffered=True)
 update = cnx.cursor()
 
-query = "SELECT idMovie, c00, c04, c05, c07, c09 from movie ORDER BY c00 LIMIT %s,2000" % start
+query = "SELECT idMovie, c00, c04, c05, c07, c09 from movie ORDER BY c00 LIMIT %s,3000" % start
 if debug == 1:
     print "Executing SQL: %s" % query
 cursor.execute(query)
