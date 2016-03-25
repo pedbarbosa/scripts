@@ -55,7 +55,7 @@ class MyHTMLParser(HTMLParser):
             self.count = data
 
 
-def movie_update(title, rating, old_votes, xbmc_year, parser):
+def movie_update(count, title, rating, old_votes, xbmc_year, parser):
     old_rating = float(rating)
     new_rating = float(parser.value)
     new_votes = int(parser.count.replace(',', ''))
@@ -74,9 +74,9 @@ def movie_update(title, rating, old_votes, xbmc_year, parser):
     title = color.GREEN + color.UNDERLINE + title + " (" + xbmc_year + ")" + color.END
 
     if (old_rating == new_rating and old_votes == new_votes):
-        print title + ": %.1f* (%s)" % (old_rating, old_votes) + color.YELLOW + " N/C" + color.END
+        print "#%s " % count + title + ": %.1f* (%s)" % (old_rating, old_votes) + color.YELLOW + " N/C" + color.END
     else:
-        print title + ": %.1f* >> %s* (%s >> %s)" % (old_rating, new_rating, old_votes, new_votes)
+        print "#%s " % count + title + ": %.1f* >> %s* (%s >> %s)" % (old_rating, new_rating, old_votes, new_votes)
 
 
 def movie_error(title, message):
@@ -109,7 +109,7 @@ for o, a in opts:
 
 cnx = mysql.connector.connect(user='xbmc', password='xbmc',
                               host='192.168.2.200',
-                              database='myvideos90')
+                              database='myvideos99')
 cursor = cnx.cursor(buffered=True)
 update = cnx.cursor()
 
@@ -143,7 +143,8 @@ for (xbmc_id, title, xbmc_votes, xbmc_rating, xbmc_year, imdb_id) in cursor:
                     print "Updating SQL with new rating and vote count..."
                 update.execute(query)
                 cnx.commit()
-            movie_update(title, xbmc_rating, xbmc_votes, xbmc_year, parser)
+            movie_count = int(start) + stats_count - 1
+            movie_update(movie_count, title, xbmc_rating, xbmc_votes, xbmc_year, parser)
             stats_success += 1
             stats_old_votes += xbmc_votes
             stats_new_votes += int(parser.count.replace(',', ''))
