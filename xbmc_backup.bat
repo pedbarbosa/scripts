@@ -2,7 +2,7 @@
 
 REM Configurable variables
 SET mysql_user="root"
-SET mysql_bin="C:\Program Files\MySQL\MySQL Server 5.6\bin"
+SET mysql_bin="C:\Program Files\MySQL\MySQL Server 5.7\bin"
 SET backup_dir="%userprofile%\Google Drive\Backups\MySQL"
 SET rar_bin="C:\Program Files\WinRAR\rar.exe"
 
