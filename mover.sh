@@ -4,7 +4,7 @@ CONFIGFILE=~/.mover
 
 # Check configuration file
 if [[ ! -e ${CONFIGFILE} ]]; then
-    echo "Error: Config file missing"
+    echo "Error: Config file missing. Copy mover.cfg to ~/.mover and configure as required."
     exit 1
 else
     source ${CONFIGFILE}
