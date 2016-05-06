@@ -1,0 +1,13 @@
+#!/bin/bash
+
+btrfs filesystem df /
+
+btrfs filesystem defragment /
+
+btrfs scrub start /
+
+sleep 120
+
+btrfs balance start /
+
+btrfs filesystem df /
