@@ -1,0 +1,36 @@
+#!/bin/bash
+
+if [[ ! -e $1 ]]; then
+    echo "Script called without source directory, aborting."
+    exit 1
+else
+    source_dir=$1
+fi
+
+tmpfile=/tmp/filecounter.txt
+
+function file_info() {
+    echo `mediainfo --Inform="Video;%Format% %Height%p" "$1"`
+}
+
+find "$source_dir" -mindepth 1 -type d | while read tvshow_path; do
+    tvshow=$(basename "$tvshow_path")
+    > $tmpfile
+    #episodes_found=0
+    echo "[T] $tvshow..."
+    find "$tvshow_path" -type f -regex '.*\.\(mp4\|avi\|mkv\)' | while read episode_path; do
+        episode=$(basename "$episode_path")
+        #echo "[E] $episode..."
+        file_details=`file_info "$episode_path"`
+        #echo $file_details
+        if [[ ${#file_details} -eq 0 ]]; then
+            echo Error on $episode_path, no details returned.
+            echo "Error detected" >> $tmpfile
+        else
+            echo $file_details >> $tmpfile
+        fi
+        #let episodes_found++
+    done
+    #echo Tmpfile has `wc -l $tmpfile`
+    sort $tmpfile | uniq -c | sort -nr
+done
