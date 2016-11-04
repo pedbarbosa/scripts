@@ -1,5 +1,5 @@
-<<<<<<< HEAD
+# XBMC/Kodi MySQL backup
 xbmc_backup.pwd
-=======
-puppet.conf
->>>>>>> 2fe961538d4dcba0fc29c644cdfe52a9dfcf2305
+
+# TVreport output
+tvreport_output.py
