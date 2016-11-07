@@ -16,7 +16,6 @@ if os.path.isfile(pickle_file):
     for episode_path in episodes.keys():
       if not os.path.exists(episode_path):
         del episodes[episode_path]
-      else:
 else:
   episodes = dict()
 shows = dict()
