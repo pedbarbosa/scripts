@@ -86,7 +86,7 @@ for key, values in episodes.items():
     shows[show_name][episode_format] = 1
 
 # Updating HTML report file
-with open(html_file, 'wb') as handle:
+with open(html_file, 'w') as handle:
   handle.write('<html><body><table border=1><tr><th rowspan=2>Show</th><th rowspan=2>Conversion progress</th><th rowspan=2>Episodes</th><th colspan=3>x265</th><th colspan=3>x264<th rowspan=2>MPEG-4 SD</th></tr>')
   handle.write('<tr><th>1080p</th><th>720p</th><th>SD</th><th>1080p</th><th>720p</th><th>SD</th></tr>')
   for show, details in sorted(shows.items()):
