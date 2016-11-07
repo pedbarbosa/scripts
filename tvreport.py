@@ -1,9 +1,10 @@
+#!/usr/local/bin/python
 from pymediainfo import MediaInfo
 import os, pickle, pprint
 
 # Environment settings
-pickle_file = '.tvreport.pickle'
 scan_directory = '/storage/x265'
+pickle_file = '.tvreport.pickle'
 html_file = 'tvreport.html'
 
 # Checking if a scan has been run previously
@@ -31,30 +32,31 @@ for dirpath, dirnames, filenames in os.walk(scan_directory):
         if episode_size != episode_old['size']:
           episode_codec = ""
           episode_height = ""
-          videoinfo = MediaInfo.parse(episode_path)
-          for track in videoinfo.tracks:
-            if track.track_type == 'Video':
-              if track.format == 'HEVC':
-                episode_codec = 'x265'
-              elif track.format == 'AVC':
-                episode_codec = 'x264'
-              elif track.format == 'MPEG-4 Visual':
-                episode_codec = 'avi'
+      else:
+        videoinfo = MediaInfo.parse(episode_path)
+        for track in videoinfo.tracks:
+          if track.track_type == 'Video':
+            if track.format == 'HEVC':
+              episode_codec = 'x265'
+            elif track.format == 'AVC':
+              episode_codec = 'x264'
+            elif track.format == 'MPEG-4 Visual':
+              episode_codec = 'avi'
 
-              if track.height >= 960:
-                episode_height = '1080p'
-              elif track.height >= 700 and track.height <= 722:
-                episode_height = '720p'
-              elif track.height <= 480:
-                episode_height = 'sd'
+            if track.height >= 960:
+              episode_height = '1080p'
+            elif track.height >= 700 and track.height <= 722:
+              episode_height = '720p'
+            elif track.height <= 480:
+              episode_height = 'sd'
 
-              if episode_codec == "" or episode_height == "":
-                print ('File with unrecognised resolution %s: %s %s' % (episode_path, track.format, track.height))
-              else:
-                episodes[episode_path] = {'show': videodir,
-                                          'size': episode_size,
-                                          'codec': episode_codec,
-                                          'height': episode_height}
+            if episode_codec == "" or episode_height == "":
+              print ('File with unrecognised resolution %s: %s %s' % (episode_path, track.format, track.height))
+            else:
+              episodes[episode_path] = {'show': videodir,
+                                        'size': episode_size,
+                                        'codec': episode_codec,
+                                        'height': episode_height}
   # End of show directory
   print('Finished processing %s...' % videodir)
 # End of root directory scan
