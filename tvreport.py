@@ -1,12 +1,12 @@
-#!/user/bin/env python3
+#!/usr/bin/env python3
 from pymediainfo import MediaInfo
-import os, pickle, pprint
+import os, pickle
 
 # Environment settings
 if os.name == 'nt':
   scan_directory = 'D:\\Video\\TV'
 else:
-  scan_directory = '/storage/x265'
+  scan_directory = '/video/TV'
 pickle_file = '.tvreport.pickle'
 video_extensions = ['.avi', '.mkv', '.mp4', '.mpg']
 html_file = 'D:\\Video\\TV\\tvreport.html'
