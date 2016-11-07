@@ -1,11 +1,14 @@
-#!/usr/local/bin/python3
+#!/user/bin/env python3
 from pymediainfo import MediaInfo
 import os, pickle, pprint
 
 # Environment settings
-scan_directory = '/storage/x265'
+if os.name == 'nt':
+  scan_directory = 'D:\\Video\\TV'
+else:
+  scan_directory = '/storage/x265'
 pickle_file = '.tvreport.pickle'
-html_file = 'tvreport.html'
+html_file = 'D:\\Video\\TV\\tvreport.html'
 
 def update_pickle ( dictionary ):
   with open(pickle_file, 'wb') as handle:
@@ -94,7 +97,7 @@ for key, values in episodes.items():
 
 # Updating HTML report file
 with open(html_file, 'w') as handle:
-  handle.write('<html><body><table border=1><tr><th rowspan=2>Show</th><th rowspan=2>Conversion progress</th><th rowspan=2>Size</th><th rowspan=2>Episodes</th><th colspan=3>x265</th><th colspan=3>x264<th rowspan=2>MPEG-4 SD</th></tr>')
+  handle.write('<html><body><table border=1><tr><th rowspan=2>Show</th><th rowspan=2>Size</th><th rowspan=2>Conversion progress</th><th rowspan=2>Episodes</th><th colspan=3>x265</th><th colspan=3>x264<th rowspan=2>MPEG-4 SD</th></tr>')
   handle.write('<tr><th>1080p</th><th>720p</th><th>SD</th><th>1080p</th><th>720p</th><th>SD</th></tr>')
   for show, details in sorted(shows.items()):
     if 'x265_1080p' in details:
@@ -128,6 +131,6 @@ with open(html_file, 'w') as handle:
     x265_episodes = x265_1080p + x265_720p + x265_sd
     num_episodes = x265_episodes + x264_1080p + x264_720p + x264_sd + avi_sd
     show_size = int(details['show_size'] / 1024 / 1024)
-    handle.write('<tr><td>%s</td><td><progress max="%s" value="%s"></progress></td><td>%s MB</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % (show, num_episodes, x265_episodes, show_size, num_episodes, x265_1080p, x265_720p, x265_sd, x264_1080p, x264_720p, x264_sd, avi_sd))
+    handle.write('<tr><td>%s</td><td>%s MB</td><td><progress max="%s" value="%s"></progress></td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % (show, show_size, num_episodes, x265_episodes, num_episodes, x265_1080p, x265_720p, x265_sd, x264_1080p, x264_720p, x264_sd, avi_sd))
   handle.write('</table></body></html>')
   handle.close
