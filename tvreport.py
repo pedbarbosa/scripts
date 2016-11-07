@@ -8,6 +8,7 @@ if os.name == 'nt':
 else:
   scan_directory = '/storage/x265'
 pickle_file = '.tvreport.pickle'
+video_extensions = ['.avi', '.mkv', '.mp4', '.mpg']
 html_file = 'D:\\Video\\TV\\tvreport.html'
 
 def update_pickle ( dictionary ):
@@ -30,50 +31,52 @@ else:
 shows = dict()
 
 # Processing root directory
-for dirpath, dirnames, filenames in os.walk(scan_directory):
-  videodir=os.path.basename(dirpath)
-
+for dirpath, dirnames, filenames in os.walk(scan_directory, topdown=True):
+  videodir = os.path.basename(dirpath)
+  depth = dirpath[len(scan_directory) + len(os.path.sep):].count(os.path.sep)
+ 
   # Processing show directory
-  for video in filenames:
-    if video.endswith('.mkv') or video.endswith('.mp4') or video.endswith('.avi'):
-      episode_path = os.path.join(dirpath, video)
-      episode_size = os.path.getsize(episode_path)
-      episode_rescan = 0
-      episode_codec = ''
-      episode_height = ''
-      # Check if file has already been scanned previously
-      if episode_path in episodes:
-        episode_old = episodes.get(episode_path)
-        # Check if file size matches previous scan
-        if episode_size != episode_old['size']:
-          episode_rescan = 1
-      # Run mediainfo if file hasn't been scanned previously or has changed
-      if episode_rescan == 1 or not episode_path in episodes:
-        videoinfo = MediaInfo.parse(episode_path)
-        for track in videoinfo.tracks:
-          if track.track_type == 'Video':
-            if track.format == 'HEVC':
-              episode_codec = 'x265'
-            elif track.format == 'AVC':
-              episode_codec = 'x264'
-            elif track.format == 'MPEG-4 Visual':
-              episode_codec = 'avi'
+  if depth == 0:
+    for video in filenames:
+      if video.endswith(tuple(video_extensions)):
+        episode_path = os.path.join(dirpath, video)
+        episode_size = os.path.getsize(episode_path)
+        episode_rescan = 0
+        episode_codec = ''
+        episode_height = ''
+        # Check if file has already been scanned previously
+        if episode_path in episodes:
+          episode_old = episodes.get(episode_path)
+          # Check if file size matches previous scan
+          if episode_size != episode_old['size']:
+            episode_rescan = 1
+        # Run mediainfo if file hasn't been scanned previously or has changed
+        if episode_rescan == 1 or not episode_path in episodes:
+          videoinfo = MediaInfo.parse(episode_path)
+          for track in videoinfo.tracks:
+            if track.track_type == 'Video':
+              if track.format == 'HEVC':
+                episode_codec = 'x265'
+              elif track.format == 'AVC':
+                episode_codec = 'x264'
+              elif track.format == 'MPEG-4 Visual':
+                episode_codec = 'avi'
 
-            if track.height >= 960:
-              episode_height = '1080p'
-            elif track.height >= 700 and track.height <= 722:
-              episode_height = '720p'
-            elif track.height <= 480:
-              episode_height = 'sd'
+              if track.height >= 800:
+                episode_height = '1080p'
+              elif track.height >= 640 and track.height < 800:
+                episode_height = '720p'
+              elif track.height < 640:
+                episode_height = 'sd'
 
-            # Codec and/or height size does not match the criteria above
-            if episode_codec == '' or episode_height == '':
-              print ('File with unrecognised resolution %s: %s %s' % (episode_path, track.format, track.height))
-            else:
-              episodes[episode_path] = {'show': videodir,
-                                        'size': episode_size,
-                                        'codec': episode_codec,
-                                        'height': episode_height}
+              # Codec and/or height size does not match the criteria above
+              if episode_codec == '' or episode_height == '':
+                print ('File with unrecognised resolution %s: %s %s' % (episode_path, track.format, track.height))
+              else:
+                episodes[episode_path] = {'show': videodir,
+                                          'size': episode_size,
+                                          'codec': episode_codec,
+                                          'height': episode_height}
   # End of show directory
   print('Finished processing %s...' % videodir)
   # Update pickle file at the end of each directory
