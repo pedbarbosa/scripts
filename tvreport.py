@@ -14,13 +14,11 @@ html_file = 'D:\\Video\\TV\\tvreport.html'
 def update_pickle ( dictionary ):
   with open(pickle_file, 'wb') as handle:
     pickle.dump(dictionary, handle)
-  handle.close
 
 # Checking if a scan has been run previously
 if os.path.isfile(pickle_file):
   with open(pickle_file, 'rb') as handle:
     episodes = pickle.load(handle)
-    handle.close
     # Check if previously scanned files have been deleted
     for episode_path in list(episodes):
       if not os.path.exists(episode_path):
@@ -87,12 +85,9 @@ for dirpath, dirnames, filenames in os.walk(scan_directory, topdown=True):
 for key, values in episodes.items():
   show_name = values['show']
   if show_name not in shows:
-    shows[show_name]=dict()
+    shows[show_name] = { 'x265_1080p': 0, 'x265_720p': 0, 'x265_sd': 0, 'x264_1080p': 0, 'x264_720p': 0, 'x264_sd': 0, 'avi_720p': 0, 'avi_sd': 0 }
   episode_format = values['codec'] + '_' + values['height']
-  if episode_format in shows[show_name]:
-    shows[show_name][episode_format] += 1
-  else:
-    shows[show_name][episode_format] = 1
+  shows[show_name][episode_format] += 1
   if 'show_size' in shows[show_name]:
     shows[show_name]['show_size'] += values['size']
   else:
@@ -111,45 +106,17 @@ table.sortable th:not(.sorttable_sorted):not(.sorttable_sorted_reverse):not(.sor
 #shows tr:hover {background-color: #ddd;}</style> \
 <script type="text/javascript" src="sorttable.js"></script></head> \
 <body><table class="sortable" id="shows"><tr><th>Show</th><th>Size (MB)</th><th class="sorttable_nosort">Conversion progress</th><th>Episodes</th> \
-<th>x265 1080p<th>x265 720p</th><th>x265 SD</th><th>x264 1080p</th><th>x264 720p</th><th>x264 SD</th><th>H.263 SD</th></tr>')
+<th>x265 1080p<th>x265 720p</th><th>x265 SD</th><th>x264 1080p</th><th>x264 720p</th><th>x264 SD</th><th>H.263 720p</th><th>H.263 SD</th></tr>')
   total_x265 = 0
   total_episodes = 0
   total_size = 0
   for show, details in sorted(shows.items()):
-    if 'x265_1080p' in details:
-        x265_1080p = details['x265_1080p']
-    else:
-        x265_1080p = 0
-    if 'x265_720p' in details:
-        x265_720p = details['x265_720p']
-    else:
-        x265_720p = 0
-    if 'x265_sd' in details:
-        x265_sd = details['x265_sd']
-    else:
-        x265_sd = 0
-    if 'x264_1080p' in details:
-        x264_1080p = details['x264_1080p']
-    else:
-        x264_1080p = 0
-    if 'x264_720p' in details:
-        x264_720p = details['x264_720p']
-    else:
-        x264_720p = 0
-    if 'x264_sd' in details:
-        x264_sd = details['x264_sd']
-    else:
-        x264_sd = 0
-    if 'avi_sd' in details:
-        avi_sd = details['avi_sd']
-    else:
-        avi_sd = 0
-    x265_episodes = x265_1080p + x265_720p + x265_sd
-    num_episodes = x265_episodes + x264_1080p + x264_720p + x264_sd + avi_sd
+    x265_episodes = details['x265_1080p'] + details['x265_720p'] + details['x265_sd']
+    num_episodes = x265_episodes + details['x264_1080p'] + details['x264_720p'] + details['x264_sd'] + details['avi_720p'] + details['avi_sd']
     total_x265 += x265_episodes
     total_episodes += num_episodes
     show_size = int(details['show_size'] / 1024 / 1024)
     total_size += show_size
-    handle.write('<tr><td class="left">%s</td><td>%s</td><td class="center"><progress max="%s" value="%s"></progress></td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % (show, show_size, num_episodes, x265_episodes, num_episodes, x265_1080p, x265_720p, x265_sd, x264_1080p, x264_720p, x264_sd, avi_sd))
+    handle.write('<tr><td class="left">%s</td><td>%s</td><td class="center"><progress max="%s" value="%s"></progress></td><td>%s</td>' % (show, show_size, num_episodes, x265_episodes, num_episodes))
+    handle.write('<td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % (details['x265_1080p'], details['x265_720p'], details['x265_sd'], details['x264_1080p'], details['x264_720p'], details['x264_sd'], details['avi_720p'], details['avi_sd']))
   handle.write('</table><br><table id="shows"><th>Scanned %s episodes, out of which %s are in x265 format. %s GB in total</th></table></body></html>' % (total_episodes, total_x265, int(total_size/1024)))
-  handle.close
