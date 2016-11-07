@@ -100,8 +100,21 @@ for key, values in episodes.items():
 
 # Updating HTML report file
 with open(html_file, 'w') as handle:
-  handle.write('<html><body><table border=1><tr><th rowspan=2>Show</th><th rowspan=2>Size</th><th rowspan=2>Conversion progress</th><th rowspan=2>Episodes</th><th colspan=3>x265</th><th colspan=3>x264<th rowspan=2>MPEG-4 SD</th></tr>')
-  handle.write('<tr><th>1080p</th><th>720p</th><th>SD</th><th>1080p</th><th>720p</th><th>SD</th></tr>')
+  handle.write('<html><head><title>TV Shows codec report</title><style> \
+table.sortable th:not(.sorttable_sorted):not(.sorttable_sorted_reverse):not(.sorttable_nosort):after { content: " \25b4\25be" } \
+#shows {font-family: "Trebuchet MS", Arial, Helvetica, sans-serif; border-collapse: collapse; width: 100%; } \
+#shows td {border: 1px solid #ddd; padding: 8px; text-align: right} \
+#shows td.left {text-align: left} \
+#shows td.center {text-align: center} \
+#shows th {border: 1px solid #ddd; padding: 8px; text-align: center; padding-top: 12px; padding-bottom: 12px; background-color: #4CAF50; color: white; } \
+#shows tr:nth-child(even){background-color: #f2f2f2;} \
+#shows tr:hover {background-color: #ddd;}</style> \
+<script type="text/javascript" src="sorttable.js"></script></head>')
+  handle.write('<body><table class="sortable" id="shows"><tr><th>Show</th><th>Size (MB)</th><th>Conversion progress</th><th>Episodes</th> \
+<th>x265 1080p<th>x265 720p</th><th>x265 SD</th><th>x264 1080p</th><th>x264 720p</th><th>x264 SD</th><th>H.263 SD</th></tr>')
+  total_x265 = 0
+  total_episodes = 0
+  total_size = 0
   for show, details in sorted(shows.items()):
     if 'x265_1080p' in details:
         x265_1080p = details['x265_1080p']
@@ -133,7 +146,10 @@ with open(html_file, 'w') as handle:
         avi_sd = 0
     x265_episodes = x265_1080p + x265_720p + x265_sd
     num_episodes = x265_episodes + x264_1080p + x264_720p + x264_sd + avi_sd
+    total_x265 += x265_episodes
+    total_episodes += num_episodes
     show_size = int(details['show_size'] / 1024 / 1024)
-    handle.write('<tr><td>%s</td><td>%s MB</td><td><progress max="%s" value="%s"></progress></td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % (show, show_size, num_episodes, x265_episodes, num_episodes, x265_1080p, x265_720p, x265_sd, x264_1080p, x264_720p, x264_sd, avi_sd))
-  handle.write('</table></body></html>')
+    total_size += show_size
+    handle.write('<tr><td class="left">%s</td><td>%s</td><td class="center"><progress max="%s" value="%s"></progress></td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % (show, show_size, num_episodes, x265_episodes, num_episodes, x265_1080p, x265_720p, x265_sd, x264_1080p, x264_720p, x264_sd, avi_sd))
+  handle.write('</table><br><table id="shows"><th>Scanned %s episodes, out of which %s are in x265 format. %s GB in total</th></table></body></html>' % (total_episodes, total_x265, int(total_size/1024)))
   handle.close
