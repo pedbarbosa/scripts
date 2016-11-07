@@ -11,7 +11,12 @@ html_file = 'tvreport.html'
 if os.path.isfile(pickle_file):
   with open(pickle_file, 'rb') as handle:
     episodes = pickle.load(handle)
-    #pprint.pprint(episodes)
+    handle.close
+    # Check if previously scanned files have been deleted
+    for episode_path in episodes.keys():
+      if not os.path.exists(episode_path):
+        del episodes[episode_path]
+      else:
 else:
   episodes = dict()
 shows = dict()
@@ -25,14 +30,17 @@ for dirpath, dirnames, filenames in os.walk(scan_directory):
     if video.endswith('.mkv') or video.endswith('.mp4') or video.endswith('.avi'):
       episode_path = os.path.join(dirpath, video)
       episode_size = os.path.getsize(episode_path)
+      episode_rescan = 0
+      episode_codec = ''
+      episode_height = ''
       # Check if file has already been scanned previously
       if (episodes.has_key(episode_path)):
         episode_old = episodes.get(episode_path)
         # Check if file size matches previous scan
         if episode_size != episode_old['size']:
-          episode_codec = ""
-          episode_height = ""
-      else:
+          episode_rescan = 1
+      # Run mediainfo if file hasn't been scanned previously or has changed
+      if episode_rescan == 1 or not episodes.has_key(episode_path):
         videoinfo = MediaInfo.parse(episode_path)
         for track in videoinfo.tracks:
           if track.track_type == 'Video':
@@ -50,7 +58,8 @@ for dirpath, dirnames, filenames in os.walk(scan_directory):
             elif track.height <= 480:
               episode_height = 'sd'
 
-            if episode_codec == "" or episode_height == "":
+            # Codec and/or height size does not match the criteria above
+            if episode_codec == '' or episode_height == '':
               print ('File with unrecognised resolution %s: %s %s' % (episode_path, track.format, track.height))
             else:
               episodes[episode_path] = {'show': videodir,
@@ -76,9 +85,6 @@ for key, values in episodes.items():
     shows[show_name][episode_format] += 1
   else:
     shows[show_name][episode_format] = 1
-
-#pprint.pprint(shows)
-#pprint.pprint(episodes)
 
 # Updating HTML report file
 with open(html_file, 'wb') as handle:
