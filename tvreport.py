@@ -7,6 +7,11 @@ scan_directory = '/storage/x265'
 pickle_file = '.tvreport.pickle'
 html_file = 'tvreport.html'
 
+def update_pickle ( dictionary ):
+  with open(pickle_file, 'wb') as handle:
+    pickle.dump(dictionary, handle)
+  handle.close
+
 # Checking if a scan has been run previously
 if os.path.isfile(pickle_file):
   with open(pickle_file, 'rb') as handle:
@@ -16,6 +21,7 @@ if os.path.isfile(pickle_file):
     for episode_path in list(episodes):
       if not os.path.exists(episode_path):
         del episodes[episode_path]
+  update_pickle(episodes)
 else:
   episodes = dict()
 shows = dict()
@@ -67,12 +73,9 @@ for dirpath, dirnames, filenames in os.walk(scan_directory):
                                         'height': episode_height}
   # End of show directory
   print('Finished processing %s...' % videodir)
+  # Update pickle file at the end of each directory
+  update_pickle(episodes)
 # End of root directory scan
-
-# Updating pickle file
-with open(pickle_file, 'wb') as handle:
-  pickle.dump(episodes, handle)
-  handle.close
 
 # Creating show report
 for key, values in episodes.items():
@@ -84,10 +87,14 @@ for key, values in episodes.items():
     shows[show_name][episode_format] += 1
   else:
     shows[show_name][episode_format] = 1
+  if 'show_size' in shows[show_name]:
+    shows[show_name]['show_size'] += values['size']
+  else:
+    shows[show_name]['show_size'] = values['size']
 
 # Updating HTML report file
 with open(html_file, 'w') as handle:
-  handle.write('<html><body><table border=1><tr><th rowspan=2>Show</th><th rowspan=2>Conversion progress</th><th rowspan=2>Episodes</th><th colspan=3>x265</th><th colspan=3>x264<th rowspan=2>MPEG-4 SD</th></tr>')
+  handle.write('<html><body><table border=1><tr><th rowspan=2>Show</th><th rowspan=2>Conversion progress</th><th rowspan=2>Size</th><th rowspan=2>Episodes</th><th colspan=3>x265</th><th colspan=3>x264<th rowspan=2>MPEG-4 SD</th></tr>')
   handle.write('<tr><th>1080p</th><th>720p</th><th>SD</th><th>1080p</th><th>720p</th><th>SD</th></tr>')
   for show, details in sorted(shows.items()):
     if 'x265_1080p' in details:
@@ -120,7 +127,7 @@ with open(html_file, 'w') as handle:
         avi_sd = 0
     x265_episodes = x265_1080p + x265_720p + x265_sd
     num_episodes = x265_episodes + x264_1080p + x264_720p + x264_sd + avi_sd
-    handle.write('<tr><td>%s</td><td><progress max="%s" value="%s"></progress></td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % (show, num_episodes, x265_episodes, num_episodes, x265_1080p, x265_720p, x265_sd, x264_1080p, x264_720p, x264_sd, avi_sd))
-
+    show_size = int(details['show_size'] / 1024 / 1024)
+    handle.write('<tr><td>%s</td><td><progress max="%s" value="%s"></progress></td><td>%s MB</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % (show, num_episodes, x265_episodes, show_size, num_episodes, x265_1080p, x265_720p, x265_sd, x264_1080p, x264_720p, x264_sd, avi_sd))
   handle.write('</table></body></html>')
   handle.close
