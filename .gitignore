@@ -2,4 +2,5 @@
 xbmc_backup.pwd
 
 # TVreport output
-tvreport_output.py
+.tvreport.pickle
+tvreport.html
