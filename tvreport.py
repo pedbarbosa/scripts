@@ -76,10 +76,9 @@ for dirpath, dirnames, filenames in os.walk(scan_directory, topdown=True):
                                           'size': episode_size,
                                           'codec': episode_codec,
                                           'height': episode_height}
-  # End of show directory
-  print('Finished processing %s...' % videodir)
-  # Update pickle file at the end of each directory
-  update_pickle(episodes)
+    # Update pickle file at the end of each directory
+    print('Finished processing %s...' % videodir)
+    update_pickle(episodes)
 # End of root directory scan
 
 # Creating show report
