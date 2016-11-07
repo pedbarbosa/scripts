@@ -101,7 +101,7 @@ for key, values in episodes.items():
 # Updating HTML report file
 with open(html_file, 'w') as handle:
   handle.write('<html><head><title>TV Shows codec report</title><style> \
-table.sortable th:not(.sorttable_sorted):not(.sorttable_sorted_reverse):not(.sorttable_nosort):after { content: " \25b4\25be" } \
+table.sortable th:not(.sorttable_sorted):not(.sorttable_sorted_reverse):not(.sorttable_nosort):after { content: " \\25b4\\25be" } \
 #shows {font-family: "Trebuchet MS", Arial, Helvetica, sans-serif; border-collapse: collapse; width: 100%; } \
 #shows td {border: 1px solid #ddd; padding: 8px; text-align: right} \
 #shows td.left {text-align: left} \
@@ -109,8 +109,8 @@ table.sortable th:not(.sorttable_sorted):not(.sorttable_sorted_reverse):not(.sor
 #shows th {border: 1px solid #ddd; padding: 8px; text-align: center; padding-top: 12px; padding-bottom: 12px; background-color: #4CAF50; color: white; } \
 #shows tr:nth-child(even){background-color: #f2f2f2;} \
 #shows tr:hover {background-color: #ddd;}</style> \
-<script type="text/javascript" src="sorttable.js"></script></head>')
-  handle.write('<body><table class="sortable" id="shows"><tr><th>Show</th><th>Size (MB)</th><th>Conversion progress</th><th>Episodes</th> \
+<script type="text/javascript" src="sorttable.js"></script></head> \
+<body><table class="sortable" id="shows"><tr><th>Show</th><th>Size (MB)</th><th class="sorttable_nosort">Conversion progress</th><th>Episodes</th> \
 <th>x265 1080p<th>x265 720p</th><th>x265 SD</th><th>x264 1080p</th><th>x264 720p</th><th>x264 SD</th><th>H.263 SD</th></tr>')
   total_x265 = 0
   total_episodes = 0
