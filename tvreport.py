@@ -5,11 +5,12 @@ import os, pickle
 # Environment settings
 if os.name == 'nt':
   scan_directory = 'D:\\Video\\TV'
+  html_file = 'D:\\Video\\TV\\tvreport.html'
 else:
   scan_directory = '/video/TV'
+  html_file = 'tvreport.html'
 pickle_file = '.tvreport.pickle'
 video_extensions = ['.avi', '.mkv', '.mp4', '.mpg']
-html_file = 'D:\\Video\\TV\\tvreport.html'
 
 def update_pickle ( dictionary ):
   with open(pickle_file, 'wb') as handle:
