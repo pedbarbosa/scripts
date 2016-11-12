@@ -1,16 +1,23 @@
 #!/usr/bin/env python3
 from pymediainfo import MediaInfo
-import os, pickle
+import os, pickle, importlib
 
-# Environment settings
-if os.name == 'nt':
-  scan_directory = 'D:\\Video\\TV'
-  html_file = 'D:\\Video\\TV\\tvreport.html'
+if not importlib.util.find_spec('progressbar'):
+  print('Error: Python module not found. Install progressbar2.')
+  exit(1)
 else:
-  scan_directory = '/video/TV'
-  html_file = 'tvreport.html'
-pickle_file = '.tvreport.pickle'
-video_extensions = ['.avi', '.mkv', '.mp4', '.mpg']
+  import progressbar
+
+config_file = os.path.expanduser('~') + '/.tvreport'
+# Check configuration file
+if not os.path.isfile(config_file):
+  print('Error: Config file %s missing. Copy tvreport.cfg to %s and configure as required.' % (config_file, config_file))
+else:
+  exec(compile(open(config_file, "rb").read(), config_file, 'exec'))
+
+if not os.path.isdir(scan_directory):
+  print('Error: %s is not a directory or doesn\'t exist. Check your %s config file.' % (scan_directory, config_file))
+  exit(1)
 
 def update_pickle ( dictionary ):
   with open(pickle_file, 'wb') as handle:
@@ -21,21 +28,37 @@ if os.path.isfile(pickle_file):
   with open(pickle_file, 'rb') as handle:
     episodes = pickle.load(handle)
     # Check if previously scanned files have been deleted
+    episodes_pickle = len(episodes)
+    print('Found %s entries cached, scanning for removed episodes...' % episodes_pickle)
+    scan_bar_progress = 0
+    #scan_bar = progressbar.ProgressBar(max_value = episodes_pickle, widgets = [ progressbar.Percentage(), ' (', progressbar.SimpleProgress(), ') ', progressbar.Bar(), ' ', progressbar.Timer(), ' ', progressbar.ETA() ])
+    scan_bar = progressbar.ProgressBar(max_value = episodes_pickle)
     for episode_path in list(episodes):
+      scan_bar_progress += 1
       if not os.path.exists(episode_path):
         del episodes[episode_path]
+      scan_bar.update(scan_bar_progress)
+    print('\nFinished existing file scan, %s entries removed.' % (episodes_pickle - len(episodes)))
   update_pickle(episodes)
 else:
   episodes = dict()
 shows = dict()
 
 # Processing root directory
+episodes_directories = len(next(os.walk(scan_directory))[1])
+scan_bar_progress = 0
+scan_bar = progressbar.ProgressBar(max_value = episodes_directories)
+print('Found %s directories, scanning for episodes...' % episodes_directories)
+
 for dirpath, dirnames, filenames in os.walk(scan_directory, topdown=True):
+  scan_bar.update(scan_bar_progress)
   videodir = os.path.basename(dirpath)
   depth = dirpath[len(scan_directory) + len(os.path.sep):].count(os.path.sep)
  
   # Processing show directory
   if depth == 0:
+    scan_bar_progress += 1
+    #print ('Processing %s...' % videodir, end='\r')
     for video in filenames:
       if video.endswith(tuple(video_extensions)):
         episode_path = os.path.join(dirpath, video)
@@ -70,14 +93,13 @@ for dirpath, dirnames, filenames in os.walk(scan_directory, topdown=True):
 
               # Codec and/or height size does not match the criteria above
               if episode_codec == '' or episode_height == '':
-                print ('File with unrecognised resolution %s: %s %s' % (episode_path, track.format, track.height))
+                print ('Warning: File with unrecognised resolution %s: %s %s' % (episode_path, track.format, track.height))
               else:
                 episodes[episode_path] = {'show': videodir,
                                           'size': episode_size,
                                           'codec': episode_codec,
                                           'height': episode_height}
     # Update pickle file at the end of each directory
-    print('Finished processing %s...' % videodir)
     update_pickle(episodes)
 # End of root directory scan
 
