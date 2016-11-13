@@ -38,6 +38,7 @@ if os.path.isfile(pickle_file):
       if not os.path.exists(episode_path):
         del episodes[episode_path]
       scan_bar.update(scan_bar_progress)
+    scan_bar.update(episodes_pickle)
     print('\nFinished existing file scan, %s entries removed.' % (episodes_pickle - len(episodes)))
   update_pickle(episodes)
 else:
@@ -102,6 +103,7 @@ for dirpath, dirnames, filenames in os.walk(scan_directory, topdown=True):
     # Update pickle file at the end of each directory
     update_pickle(episodes)
 # End of root directory scan
+scan_bar.update(episodes_directories)
 
 # Creating show report
 for key, values in episodes.items():
