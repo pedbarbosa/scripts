@@ -65,8 +65,6 @@ for dirpath, dirnames, filenames in os.walk(scan_directory, topdown=True):
         episode_path = os.path.join(dirpath, video)
         episode_size = os.path.getsize(episode_path)
         episode_rescan = 0
-        episode_codec = ''
-        episode_height = ''
         # Check if file has already been scanned previously
         if episode_path in episodes:
           episode_old = episodes.get(episode_path)
@@ -76,6 +74,8 @@ for dirpath, dirnames, filenames in os.walk(scan_directory, topdown=True):
         # Run mediainfo if file hasn't been scanned previously or has changed
         if episode_rescan == 1 or not episode_path in episodes:
           videoinfo = MediaInfo.parse(episode_path)
+          episode_codec = ''
+          episode_height = ''
           for track in videoinfo.tracks:
             if track.track_type == 'Video':
               if track.format == 'HEVC':
