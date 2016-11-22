@@ -29,7 +29,7 @@ if os.path.isfile(pickle_file):
     episodes = pickle.load(handle)
     # Check if previously scanned files have been deleted
     episodes_pickle = len(episodes)
-    print('Found %s entries cached, scanning for removed episodes...' % episodes_pickle)
+    print('Found %s episodes from previous scan(s) cached, scanning for removed episodes...' % episodes_pickle)
     scan_bar_progress = 0
     #scan_bar = progressbar.ProgressBar(max_value = episodes_pickle, widgets = [ progressbar.Percentage(), ' (', progressbar.SimpleProgress(), ') ', progressbar.Bar(), ' ', progressbar.Timer(), ' ', progressbar.ETA() ])
     scan_bar = progressbar.ProgressBar(max_value = episodes_pickle)
@@ -39,7 +39,7 @@ if os.path.isfile(pickle_file):
         del episodes[episode_path]
       scan_bar.update(scan_bar_progress)
     scan_bar.update(episodes_pickle)
-    print('\nFinished existing file scan, %s entries removed.' % (episodes_pickle - len(episodes)))
+    print('\nFinished existing file scan, %s episodes removed.' % (episodes_pickle - len(episodes)))
   update_pickle(episodes)
 else:
   episodes = dict()
@@ -144,3 +144,5 @@ table.sortable th:not(.sorttable_sorted):not(.sorttable_sorted_reverse):not(.sor
     handle.write('<tr><td class="left">%s</td><td>%s</td><td class="center"><progress max="%s" value="%s"></progress></td><td>%s</td>' % (show, show_size, num_episodes, x265_episodes, num_episodes))
     handle.write('<td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % (details['x265_1080p'], details['x265_720p'], details['x265_sd'], details['x264_1080p'], details['x264_720p'], details['x264_sd'], details['avi_720p'], details['avi_sd']))
   handle.write('</table><br><table id="shows"><th>Scanned %s shows with %s episodes, out of which %s are in x265 format. %s GB in total</th></table></body></html>' % (episodes_directories, total_episodes, total_x265, int(total_size/1024)))
+
+print('\nFinished full directory scan. %s episodes (%s in x265 format), %s GB in total.' % (total_episodes, total_x265, int(total_size/1024)))
