@@ -129,7 +129,7 @@ table.sortable th:not(.sorttable_sorted):not(.sorttable_sorted_reverse):not(.sor
 #shows tr:nth-child(even){background-color: #f2f2f2;} \
 #shows tr:hover {background-color: #ddd;}</style> \
 <script type="text/javascript" src="sorttable.js"></script></head> \
-<body><table class="sortable" id="shows"><tr><th>Show</th><th>Size (MB)</th><th class="sorttable_nosort">Conversion progress</th><th>Episodes</th> \
+<body><table class="sortable" id="shows"><tr><th>Show</th><th>Size (MB)</th><th class="sorttable_nosort">Conversion progress</th><th>Ep #</th><th>Qual</th> \
 <th>x265 1080p<th>x265 720p</th><th>x265 SD</th><th>x264 1080p</th><th>x264 720p</th><th>x264 SD</th><th>H.263 720p</th><th>H.263 SD</th></tr>')
   total_x265 = 0
   total_episodes = 0
@@ -141,7 +141,15 @@ table.sortable th:not(.sorttable_sorted):not(.sorttable_sorted_reverse):not(.sor
     total_episodes += num_episodes
     show_size = int(details['show_size'] / 1024 / 1024)
     total_size += show_size
-    handle.write('<tr><td class="left">%s</td><td>%s</td><td class="center"><progress max="%s" value="%s"></progress></td><td>%s</td>' % (show, show_size, num_episodes, x265_episodes, num_episodes))
+    if (details['x265_1080p'] + details['x264_1080p']) == num_episodes:
+      show_badge = '1080p'
+    elif (details['x265_720p'] + details['x264_720p'] + details['avi_720p']) == num_episodes:
+      show_badge = '720p'
+    elif (details['x265_sd'] + details['x264_sd'] + details['avi_sd']) == num_episodes:
+      show_badge = 'SD'
+    else:
+      show_badge = 'Mix'
+    handle.write('<tr><td class="left">%s</td><td>%s</td><td class="center"><progress max="%s" value="%s"></progress></td><td>%s</td><td>%s</td>' % (show, show_size, num_episodes, x265_episodes, num_episodes, show_badge))
     handle.write('<td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % (details['x265_1080p'], details['x265_720p'], details['x265_sd'], details['x264_1080p'], details['x264_720p'], details['x264_sd'], details['avi_720p'], details['avi_sd']))
   handle.write('</table><br><table id="shows"><th>Scanned %s shows with %s episodes, out of which %s are in x265 format. %s GB in total</th></table></body></html>' % (episodes_directories, total_episodes, total_x265, int(total_size/1024)))
 
