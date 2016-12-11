@@ -31,7 +31,6 @@ if os.path.isfile(pickle_file):
     episodes_pickle = len(episodes)
     print('Found %s episodes from previous scan(s) cached, scanning for removed episodes...' % episodes_pickle)
     scan_bar_progress = 0
-    #scan_bar = progressbar.ProgressBar(max_value = episodes_pickle, widgets = [ progressbar.Percentage(), ' (', progressbar.SimpleProgress(), ') ', progressbar.Bar(), ' ', progressbar.Timer(), ' ', progressbar.ETA() ])
     scan_bar = progressbar.ProgressBar(max_value = episodes_pickle)
     for episode_path in list(episodes):
       scan_bar_progress += 1
@@ -59,20 +58,21 @@ for dirpath, dirnames, filenames in os.walk(scan_directory, topdown=True):
   # Processing show directory
   if depth == 0:
     scan_bar_progress += 1
-    #print ('Processing %s...' % videodir, end='\r')
+    # Process each video file
     for video in filenames:
       if video.endswith(tuple(video_extensions)):
         episode_path = os.path.join(dirpath, video)
         episode_size = os.path.getsize(episode_path)
-        episode_rescan = 0
+        episode_rescan = 1
         # Check if file has already been scanned previously
         if episode_path in episodes:
           episode_old = episodes.get(episode_path)
           # Check if file size matches previous scan
-          if episode_size != episode_old['size']:
-            episode_rescan = 1
+          if episode_size == episode_old['size']:
+            episode_rescan = 0
         # Run mediainfo if file hasn't been scanned previously or has changed
-        if episode_rescan == 1 or not episode_path in episodes:
+        if episode_rescan == 1:
+          #  or not episode_path in episodes:
           videoinfo = MediaInfo.parse(episode_path)
           episode_codec = ''
           episode_height = ''
@@ -82,8 +82,8 @@ for dirpath, dirnames, filenames in os.walk(scan_directory, topdown=True):
                 episode_codec = 'x265'
               elif track.format == 'AVC':
                 episode_codec = 'x264'
-              elif track.format == 'MPEG-4 Visual':
-                episode_codec = 'avi'
+              elif track.format == 'MPEG-4 Visual' or track.format == 'MPEG Video':
+                episode_codec = 'mpeg'
 
               if track.height >= 800:
                 episode_height = '1080p'
@@ -109,7 +109,7 @@ scan_bar.update(episodes_directories)
 for key, values in episodes.items():
   show_name = values['show']
   if show_name not in shows:
-    shows[show_name] = { 'x265_1080p': 0, 'x265_720p': 0, 'x265_sd': 0, 'x264_1080p': 0, 'x264_720p': 0, 'x264_sd': 0, 'avi_720p': 0, 'avi_sd': 0 }
+    shows[show_name] = { 'x265_1080p': 0, 'x265_720p': 0, 'x265_sd': 0, 'x264_1080p': 0, 'x264_720p': 0, 'x264_sd': 0, 'mpeg_720p': 0, 'mpeg_sd': 0 }
   episode_format = values['codec'] + '_' + values['height']
   shows[show_name][episode_format] += 1
   if 'show_size' in shows[show_name]:
@@ -130,27 +130,27 @@ table.sortable th:not(.sorttable_sorted):not(.sorttable_sorted_reverse):not(.sor
 #shows tr:hover {background-color: #ddd;}</style> \
 <script type="text/javascript" src="sorttable.js"></script></head> \
 <body><table class="sortable" id="shows"><tr><th>Show</th><th>Size (MB)</th><th class="sorttable_nosort">Conversion progress</th><th>Ep #</th><th>Qual</th> \
-<th>x265 1080p<th>x265 720p</th><th>x265 SD</th><th>x264 1080p</th><th>x264 720p</th><th>x264 SD</th><th>H.263 720p</th><th>H.263 SD</th></tr>')
+<th>x265 1080p<th>x265 720p</th><th>x265 SD</th><th>x264 1080p</th><th>x264 720p</th><th>x264 SD</th><th>H.262 720p</th><th>H.262 SD</th></tr>')
   total_x265 = 0
   total_episodes = 0
   total_size = 0
   for show, details in sorted(shows.items()):
     x265_episodes = details['x265_1080p'] + details['x265_720p'] + details['x265_sd']
-    num_episodes = x265_episodes + details['x264_1080p'] + details['x264_720p'] + details['x264_sd'] + details['avi_720p'] + details['avi_sd']
+    num_episodes = x265_episodes + details['x264_1080p'] + details['x264_720p'] + details['x264_sd'] + details['mpeg_720p'] + details['mpeg_sd']
     total_x265 += x265_episodes
     total_episodes += num_episodes
     show_size = int(details['show_size'] / 1024 / 1024)
     total_size += show_size
     if (details['x265_1080p'] + details['x264_1080p']) == num_episodes:
       show_badge = '1080p'
-    elif (details['x265_720p'] + details['x264_720p'] + details['avi_720p']) == num_episodes:
+    elif (details['x265_720p'] + details['x264_720p'] + details['mpeg_720p']) == num_episodes:
       show_badge = '720p'
-    elif (details['x265_sd'] + details['x264_sd'] + details['avi_sd']) == num_episodes:
+    elif (details['x265_sd'] + details['x264_sd'] + details['mpeg_sd']) == num_episodes:
       show_badge = 'SD'
     else:
       show_badge = 'Mix'
     handle.write('<tr><td class="left">%s</td><td>%s</td><td class="center"><progress max="%s" value="%s"></progress></td><td>%s</td><td>%s</td>' % (show, show_size, num_episodes, x265_episodes, num_episodes, show_badge))
-    handle.write('<td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % (details['x265_1080p'], details['x265_720p'], details['x265_sd'], details['x264_1080p'], details['x264_720p'], details['x264_sd'], details['avi_720p'], details['avi_sd']))
+    handle.write('<td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % (details['x265_1080p'], details['x265_720p'], details['x265_sd'], details['x264_1080p'], details['x264_720p'], details['x264_sd'], details['mpeg_720p'], details['mpeg_sd']))
   handle.write('</table><br><table id="shows"><th>Scanned %s shows with %s episodes, out of which %s are in x265 format. %s GB in total</th></table></body></html>' % (episodes_directories, total_episodes, total_x265, int(total_size/1024)))
 
 print('\nFinished full directory scan. %s episodes (%s in x265 format), %s GB in total.' % (total_episodes, total_x265, int(total_size/1024)))
