@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 from pymediainfo import MediaInfo
-import os, pickle, importlib
+import os
+import pickle
+import importlib
 
 if not importlib.util.find_spec('progressbar'):
   print('Error: Python module not found. Install progressbar2.')
