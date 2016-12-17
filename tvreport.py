@@ -19,9 +19,32 @@ if not os.path.isdir(scan_directory):
   print('Error: %s is not a directory or doesn\'t exist. Check your %s config file.' % (scan_directory, config_file))
   exit(1)
 
+
 def update_pickle ( dictionary ):
   with open(pickle_file, 'wb') as handle:
     pickle.dump(dictionary, handle)
+
+
+def track_codec (track):
+  if track.format == 'HEVC':
+    return 'x265'
+  elif track.format == 'AVC':
+    return 'x264'
+  elif track.format == 'MPEG-4 Visual' or track.format == 'MPEG Video':
+    return 'mpeg'
+  else:
+    return ''
+
+
+def track_resolution (track,episode_path):
+  if track.height >= 800:
+    return '1080p'
+  elif track.height >= 640 and track.height < 800:
+    return '720p'
+  elif track.height < 640:
+    return 'sd'
+  else:
+    return ''
 
 # Checking if a scan has been run previously
 if os.path.isfile(pickle_file):
@@ -75,31 +98,19 @@ for dirpath, dirnames, filenames in os.walk(scan_directory, topdown=True):
           #  or not episode_path in episodes:
           videoinfo = MediaInfo.parse(episode_path)
           episode_codec = ''
-          episode_height = ''
+          episode_resolution = ''
           for track in videoinfo.tracks:
             if track.track_type == 'Video':
-              if track.format == 'HEVC':
-                episode_codec = 'x265'
-              elif track.format == 'AVC':
-                episode_codec = 'x264'
-              elif track.format == 'MPEG-4 Visual' or track.format == 'MPEG Video':
-                episode_codec = 'mpeg'
-
-              if track.height >= 800:
-                episode_height = '1080p'
-              elif track.height >= 640 and track.height < 800:
-                episode_height = '720p'
-              elif track.height < 640:
-                episode_height = 'sd'
-
-              # Codec and/or height size does not match the criteria above
-              if episode_codec == '' or episode_height == '':
+              episode_codec = track_codec(track)
+              episode_resolution = track_resolution(track,episode_path)
+              # Codec and/or resolution does not match the criteria above
+              if episode_codec == '' or episode_resolution == '':
                 print ('Warning: File with unrecognised resolution %s: %s %s' % (episode_path, track.format, track.height))
               else:
                 episodes[episode_path] = {'show': videodir,
                                           'size': episode_size,
                                           'codec': episode_codec,
-                                          'height': episode_height}
+                                          'height': episode_resolution}
     # Update pickle file at the end of each directory
     update_pickle(episodes)
 # End of root directory scan
