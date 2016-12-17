@@ -68,6 +68,7 @@ if os.path.isfile(pickle_file):
 else:
     episodes = dict()
 shows = dict()
+errors = dict()
 
 # Processing root directory
 episodes_directories = len(next(os.walk(scan_directory))[1])
@@ -82,53 +83,58 @@ for dirpath, dirnames, filenames in os.walk(scan_directory, topdown=True):
 
     # Processing show directory
     if depth == 0:
-        scan_bar_progress += 1
+        if len(videodir) != 0:
+            scan_bar_progress += 1
         # Process each video file
         for video in filenames:
             if video.endswith(tuple(video_extensions)):
                 episode_path = os.path.join(dirpath, video)
                 episode_size = os.path.getsize(episode_path)
                 episode_rescan = 1
+
                 # Check if file has already been scanned previously
                 if episode_path in episodes:
                     episode_old = episodes.get(episode_path)
                     # Check if file size matches previous scan
                     if episode_size == episode_old['size']:
                         episode_rescan = 0
+                episode_codec = ''
+                episode_resolution = ''
+                episode_format = ''
+
                 # Run mediainfo if file hasn't been scanned previously or has changed
                 if episode_rescan == 1:
                     # or no episode_path in episodes:
                     videoinfo = MediaInfo.parse(episode_path)
-                    episode_codec = ''
-                    episode_resolution = ''
                     for track in videoinfo.tracks:
                         if track.track_type == 'Video':
                             episode_codec = track_codec(track)
                             episode_resolution = track_resolution(track)
+                            episode_format = episode_codec + '_' + episode_resolution
                             # Codec and/or resolution does not match the criteria above
-                            if episode_codec == '' or episode_resolution == '':
-                                print('Warning: File with unrecognised resolution %s: %s %s' % (episode_path, track.format, track.height))
+                            if len(episode_format) < 6:
+                                errors[episode_path] = 'File with unrecognised resolution: %s %s' % (episode_codec, episode_resolution)
                             else:
                                 episodes[episode_path] = {'show': videodir,
                                                           'size': episode_size,
                                                           'codec': episode_codec,
                                                           'height': episode_resolution}
+                else:
+                    episode_format = episodes[episode_path]['codec'] + '_' + episodes[episode_path]['height']
+
+                if videodir not in shows:
+                    shows[videodir] = {'show_size': 0, 'x265_1080p': 0, 'x265_720p': 0, 'x265_sd': 0, 'x264_1080p': 0, 'x264_720p': 0, 'x264_sd': 0, 'mpeg_720p': 0, 'mpeg_sd': 0}
+
+                if len(episode_format) < 6:
+                    errors[episode_path] = 'Could not obtain video details'
+                else:
+                    shows[videodir][episode_format] += 1
+                    shows[videodir]['show_size'] += episode_size
+
     # Update pickle file at the end of each directory
     update_pickle(episodes)
 # End of root directory scan
 scan_bar.update(episodes_directories)
-
-# Creating show report
-for key, values in episodes.items():
-    show_name = values['show']
-    if show_name not in shows:
-        shows[show_name] = {'x265_1080p': 0, 'x265_720p': 0, 'x265_sd': 0, 'x264_1080p': 0, 'x264_720p': 0, 'x264_sd': 0, 'mpeg_720p': 0, 'mpeg_sd': 0}
-    episode_format = values['codec'] + '_' + values['height']
-    shows[show_name][episode_format] += 1
-    if 'show_size' in shows[show_name]:
-        shows[show_name]['show_size'] += values['size']
-    else:
-        shows[show_name]['show_size'] = values['size']
 
 # Updating HTML report file
 with open(html_file, 'w') as handle:
@@ -165,5 +171,10 @@ table.sortable th:not(.sorttable_sorted):not(.sorttable_sorted_reverse):not(.sor
         handle.write('<tr><td class="left">%s</td><td>%s</td><td class="center"><progress max="%s" value="%s"></progress></td><td>%s</td><td>%s</td>' % (show, show_size, num_episodes, x265_episodes, num_episodes, show_badge))
         handle.write('<td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % (details['x265_1080p'], details['x265_720p'], details['x265_sd'], details['x264_1080p'], details['x264_720p'], details['x264_sd'], details['mpeg_720p'], details['mpeg_sd']))
     handle.write('</table><br><table id="shows"><th>Scanned %s shows with %s episodes, out of which %s are in x265 format. %s GB in total</th></table></body></html>' % (episodes_directories, total_episodes, total_x265, int(total_size/1024)))
+
+if len(errors) > 0:
+    print('\n\nIssues detected:\n================')
+    for messages, values in sorted(errors.items()):
+        print('%s - %s' % (messages, values))
 
 print('\nFinished full directory scan. %s episodes (%s in x265 format), %s GB in total.' % (total_episodes, total_x265, int(total_size/1024)))
