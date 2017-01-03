@@ -170,11 +170,12 @@ table.sortable th:not(.sorttable_sorted):not(.sorttable_sorted_reverse):not(.sor
             show_badge = 'Mix'
         handle.write('<tr><td class="left">%s</td><td>%s</td><td class="center"><progress max="%s" value="%s"></progress></td><td>%s</td><td>%s</td>' % (show, show_size, num_episodes, x265_episodes, num_episodes, show_badge))
         handle.write('<td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % (details['x265_1080p'], details['x265_720p'], details['x265_sd'], details['x264_1080p'], details['x264_720p'], details['x264_sd'], details['mpeg_720p'], details['mpeg_sd']))
-    handle.write('</table><br><table id="shows"><th>Scanned %s shows with %s episodes, out of which %s are in x265 format. %s GB in total</th></table></body></html>' % (episodes_directories, total_episodes, total_x265, int(total_size/1024)))
+    total_stats = 'Scanned %s shows with %s episodes (%s in x265 format - %.2f%%). %.0f GB in total' % (episodes_directories, total_episodes, total_x265, ((total_x265*100)/total_episodes), (total_size/1024))
+    handle.write('</table><br><table id="shows"><th>%s</th></table></body></html>' % (total_stats))
 
 if len(errors) > 0:
     print('\n\nIssues detected:\n================')
     for messages, values in sorted(errors.items()):
         print('%s - %s' % (messages, values))
 
-print('\nFinished full directory scan. %s episodes (%s in x265 format), %s GB in total.' % (total_episodes, total_x265, int(total_size/1024)))
+print('\nFinished full directory scan. %s' % total_stats)
