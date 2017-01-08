@@ -76,6 +76,8 @@ scan_bar_progress = 0
 scan_bar = progressbar.ProgressBar(max_value=episodes_directories)
 print('Found %s directories, scanning for episodes...' % episodes_directories)
 
+recode = ''
+
 for dirpath, dirnames, filenames in os.walk(scan_directory, topdown=True):
     scan_bar.update(scan_bar_progress)
     videodir = os.path.basename(dirpath)
@@ -131,14 +133,18 @@ for dirpath, dirnames, filenames in os.walk(scan_directory, topdown=True):
                     shows[videodir][episode_format] += 1
                     shows[videodir]['show_size'] += episode_size
 
+                # Testing x265 report
+                if episodes[episode_path]['codec'] != 'x265':
+                    recode += '<tr><td>%s</td><td>%s</td><td>%s</td></tr>' % (episodes[episode_path]['codec'], episodes[episode_path]['height'], episode_path)
+
     # Update pickle file at the end of each directory
     update_pickle(episodes)
 # End of root directory scan
 scan_bar.update(episodes_directories)
 
 # Updating HTML report file
-with open(html_file, 'w') as handle:
-    handle.write('<html><head><title>TV Shows codec report</title><style> \
+with open(report_html, 'w') as report:
+    report.write('<html><head><title>TV Shows codec report</title><style> \
 table.sortable th:not(.sorttable_sorted):not(.sorttable_sorted_reverse):not(.sorttable_nosort):after { content: " \\25b4\\25be" } \
 #shows {font-family: "Trebuchet MS", Arial, Helvetica, sans-serif; border-collapse: collapse; width: 100%; } \
 #shows td {border: 1px solid #ddd; padding: 8px; text-align: right} \
@@ -168,14 +174,17 @@ table.sortable th:not(.sorttable_sorted):not(.sorttable_sorted_reverse):not(.sor
             show_badge = 'SD'
         else:
             show_badge = 'Mix'
-        handle.write('<tr><td class="left">%s</td><td>%s</td><td class="center"><progress max="%s" value="%s"></progress></td><td>%s</td><td>%s</td>' % (show, show_size, num_episodes, x265_episodes, num_episodes, show_badge))
-        handle.write('<td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % (details['x265_1080p'], details['x265_720p'], details['x265_sd'], details['x264_1080p'], details['x264_720p'], details['x264_sd'], details['mpeg_720p'], details['mpeg_sd']))
+        report.write('<tr><td class="left">%s</td><td>%s</td><td class="center"><progress max="%s" value="%s"></progress></td><td>%s</td><td>%s</td>' % (show, show_size, num_episodes, x265_episodes, num_episodes, show_badge))
+        report.write('<td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % (details['x265_1080p'], details['x265_720p'], details['x265_sd'], details['x264_1080p'], details['x264_720p'], details['x264_sd'], details['mpeg_720p'], details['mpeg_sd']))
     total_stats = 'Scanned %s shows with %s episodes (%s in x265 format - %.2f%%). %.0f GB in total' % (episodes_directories, total_episodes, total_x265, ((total_x265*100)/total_episodes), (total_size/1024))
-    handle.write('</table><br><table id="shows"><th>%s</th></table></body></html>' % (total_stats))
+    report.write('</table><br><table id="shows"><th>%s</th></table></body></html>' % (total_stats))
 
 if len(errors) > 0:
     print('\n\nIssues detected:\n================')
     for messages, values in sorted(errors.items()):
         print('%s - %s' % (messages, values))
+
+with open(recode_html, 'w') as handle:
+    handle.write('<table border=1>%s</table>' % (recode))
 
 print('\nFinished full directory scan. %s' % total_stats)
