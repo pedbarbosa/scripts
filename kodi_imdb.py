@@ -107,7 +107,7 @@ for o, a in opts:
     else:
         assert False, "unhandled option"
 
-cnx = mysql.connector.connect(user='xbmc', password='xbmc',
+cnx = mysql.connector.connect(user='kodi', password='kodi',
                               host='127.0.0.1',
                               database='myvideos99')
 cursor = cnx.cursor(buffered=True)
