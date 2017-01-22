@@ -70,7 +70,7 @@ def movie_update(count, title, rating, old_votes, xbmc_year, parser):
     elif old_votes < new_votes:
         new_votes = color.LIGHTCYAN + "%s" % new_votes + color.END
 
-    title = re.sub(r'[^\x00-\x7F]+',' ', title) 
+    title = re.sub(r'[^\x00-\x7F]+', ' ', title)
     title = color.GREEN + color.UNDERLINE + title + " (" + xbmc_year + ")" + color.END
 
     if (old_rating == new_rating and old_votes == new_votes):
@@ -108,7 +108,7 @@ for o, a in opts:
         assert False, "unhandled option"
 
 cnx = mysql.connector.connect(user='xbmc', password='xbmc',
-                              host='192.168.2.200',
+                              host='127.0.0.1',
                               database='myvideos99')
 cursor = cnx.cursor(buffered=True)
 update = cnx.cursor()
