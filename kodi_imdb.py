@@ -109,7 +109,7 @@ for o, a in opts:
 
 cnx = mysql.connector.connect(user='kodi', password='kodi',
                               host='127.0.0.1',
-                              database='myvideos99')
+                              database='MyVideos99')
 cursor = cnx.cursor(buffered=True)
 update = cnx.cursor()
 
