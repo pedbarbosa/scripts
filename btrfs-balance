@@ -2,12 +2,12 @@
 
 btrfs filesystem df /
 
-btrfs filesystem defragment /
+btrfs filesystem defragment -r /
 
 btrfs scrub start /
 
 sleep 120
 
-btrfs balance start /
+btrfs balance start --full-balance /
 
 btrfs filesystem df /
