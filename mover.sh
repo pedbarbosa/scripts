@@ -55,12 +55,7 @@ for FILENAME in $(find "$SOURCE/" -maxdepth 1 -type f); do
     FILESIZE="$(stat -c %s $FILENAME)"
     sleep 2
     if [[ $FILESIZE -eq "$(stat -c %s $FILENAME)" ]]; then
-        if [[ $FILENAME == *"at.midnight."* ]]; then
-            NEWNAME="$(echo $FILENAME | sed -r 's/\.([0-9]{2})([0-9]{2})([0-9]{2})/\.20\1\.\2.\3/g')"
-            mv "$FILENAME" "$NEWNAME"
-            FILENAME=$NEWNAME
-        fi
-        echo `clock`"Moving file $FILENAME" >> $LOGFILE
+        echo `clock`"Moving file $FILENAME to $DESTINATION..." >> $LOGFILE
         mv "$FILENAME" "$DESTINATION/" && let COUNTER+=1
     fi
 done
