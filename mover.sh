@@ -51,6 +51,8 @@ fi
 
 # Move files to final location
 COUNTER=0
+SAVEIFS=$IFS
+IFS=$(echo -en "\n\b")
 for FILENAME in $(find "$SOURCE/" -maxdepth 1 -type f); do
     FILESIZE="$(stat -c %s $FILENAME)"
     sleep 2
@@ -59,5 +61,6 @@ for FILENAME in $(find "$SOURCE/" -maxdepth 1 -type f); do
         mv "$FILENAME" "$DESTINATION/" && let COUNTER+=1
     fi
 done
+IFS=$SAVEIFS
 
 echo `clock`"Moved $COUNTER items" >> $LOGFILE
