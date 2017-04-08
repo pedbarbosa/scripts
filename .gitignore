@@ -1,6 +1,7 @@
-# XBMC/Kodi MySQL backup
-xbmc_backup.pwd
-
 # TVreport output
 .tvreport.pickle
 tvreport.html
+
+#IntelliJ
+.idea/
+scripts.iml
