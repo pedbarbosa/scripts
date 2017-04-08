@@ -14,6 +14,7 @@ config_file = os.path.expanduser('~') + '/.tvreport'
 # Check configuration file
 if not os.path.isfile(config_file):
     print('Error: Config file %s missing. Copy tvreport.cfg to %s and configure as required.' % (config_file, config_file))
+    exit(1)
 else:
     exec(compile(open(config_file, "rb").read(), config_file, 'exec'))
 
