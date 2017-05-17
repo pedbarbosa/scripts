@@ -66,6 +66,7 @@ if os.path.isfile(pickle_file):
         scan_bar.update(episodes_pickle)
         print('\nFinished existing file scan, %s episodes removed.' % (episodes_pickle - len(episodes)))
     update_pickle(episodes)
+    check_episodes = dict(episodes)
 else:
     episodes = dict()
 shows = dict()
@@ -95,7 +96,7 @@ for dirpath, dirnames, filenames in os.walk(scan_directory, topdown=True):
                 episode_size = os.path.getsize(episode_path)
                 episode_rescan = 1
 
-                # Check if file has already been scanned previously
+                # Check if file has been scanned previously
                 if episode_path in episodes:
                     episode_old = episodes.get(episode_path)
                     # Check if file size matches previous scan
@@ -137,11 +138,18 @@ for dirpath, dirnames, filenames in os.walk(scan_directory, topdown=True):
                 # Testing x265 report
                 if episodes[episode_path]['codec'] != 'x265':
                     recode += '<tr><td>%s</td><td>%s</td><td>%s</td></tr>' % (episodes[episode_path]['codec'], episodes[episode_path]['height'], episode_path)
+                
+                #print(len(check_episodes))
+                if episode_path in check_episodes:
+                    del check_episodes[episode_path]
 
     # Update pickle file at the end of each directory
     update_pickle(episodes)
 # End of root directory scan
 scan_bar.update(episodes_directories)
+
+for episode_path in check_episodes:
+    print('\nERROR: File processed previously but currently being skipped: %s' % episode_path)
 
 # Updating HTML report file
 with open(report_html, 'w') as report:
