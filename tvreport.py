@@ -137,7 +137,7 @@ for dirpath, dirnames, filenames in os.walk(scan_directory, topdown=True):
 
                 # Testing x265 report
                 if episodes[episode_path]['codec'] != 'x265':
-                    recode += '<tr><td>%s</td><td>%s</td><td>%s</td></tr>' % (episodes[episode_path]['codec'], episodes[episode_path]['height'], episode_path)
+                    recode += '<tr><td align=center>%s</td><td align=center>%s</td><td align=right>%s</td><td>%s</td></tr>' % (episodes[episode_path]['codec'], episodes[episode_path]['height'], episodes[episode_path]['size'], episode_path)
                 
                 #print(len(check_episodes))
                 if episode_path in check_episodes:
