@@ -108,7 +108,7 @@ for dirpath, dirnames, filenames in os.walk(scan_directory, topdown=True):
 
                 # Run mediainfo if file hasn't been scanned previously or has changed
                 if episode_rescan == 1:
-                    # or no episode_path in episodes:
+                    # or no episode_path in episodes
                     videoinfo = MediaInfo.parse(episode_path)
                     for track in videoinfo.tracks:
                         if track.track_type == 'Video':
@@ -126,6 +126,11 @@ for dirpath, dirnames, filenames in os.walk(scan_directory, topdown=True):
                 else:
                     episode_format = episodes[episode_path]['codec'] + '_' + episodes[episode_path]['height']
 
+                if videodir in codec_override:
+                    #print('OVERRIDDEN - Found file %s belonging to show %s, changing codec to x265...' % (episode_path, videodir))
+                    episodes[episode_path]['codec'] = 'x265'
+                    episode_format = episodes[episode_path]['codec'] + '_' + episodes[episode_path]['height']
+
                 if videodir not in shows:
                     shows[videodir] = {'show_size': 0, 'x265_1080p': 0, 'x265_720p': 0, 'x265_sd': 0, 'x264_1080p': 0, 'x264_720p': 0, 'x264_sd': 0, 'mpeg_720p': 0, 'mpeg_sd': 0}
 
@@ -139,7 +144,7 @@ for dirpath, dirnames, filenames in os.walk(scan_directory, topdown=True):
                 if episodes[episode_path]['codec'] != 'x265':
                     recode += '<tr><td align=center>%s</td><td align=center>%s</td><td align=right>%s</td><td>%s</td></tr>' % (episodes[episode_path]['codec'], episodes[episode_path]['height'], episodes[episode_path]['size'], episode_path)
                 
-                #print(len(check_episodes))
+                # Ensure files have been properly processed
                 if episode_path in check_episodes:
                     del check_episodes[episode_path]
 
