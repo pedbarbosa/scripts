@@ -22,6 +22,16 @@ with request.urlopen('https://api.coinmarketcap.com/v1/ticker/ethereum/?convert=
     eth_aud = float(data[0]['price_aud'])
     eth_usd = float(data[0]['price_usd'])
     eth_btc = float(data[0]['price_btc']) * 1000
+    pct_fields = ['percent_change_1h', 'percent_change_24h', 'percent_change_7d']
+    for field in pct_fields:
+        if data[0][field] is None:
+            data[0][field] = 0
+
+    #if data[0]['percent_change_1h'] is not None:
+    #    pct_1h = data[0]['percent_change_1h'] + '%'
+    #else:
+    #    pct_1h = 'N/A'
+
     pct_1h = data[0]['percent_change_1h'] + '%'
     pct_1d = data[0]['percent_change_24h'] + '%'
     pct_7d = data[0]['percent_change_7d'] + '%'
