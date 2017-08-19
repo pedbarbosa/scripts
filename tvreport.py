@@ -5,21 +5,23 @@ import pickle
 import importlib
 
 if not importlib.util.find_spec('progressbar'):
-    print('Error: Python module not found. Install progressbar2.')
-    exit(1)
+    exit_with_msg('Error: Python module not found. Install progressbar2.')
 else:
     import progressbar
 
 config_file = os.path.expanduser('~') + '/.tvreport'
 # Check configuration file
 if not os.path.isfile(config_file):
-    print('Error: Config file %s missing. Copy tvreport.cfg to %s and configure as required.' % (config_file, config_file))
-    exit(1)
+    exit_with_msg('Error: Config file %s missing. Copy tvreport.cfg to %s and configure as required.' % (config_file, config_file))
 else:
     exec(compile(open(config_file, "rb").read(), config_file, 'exec'))
 
 if not os.path.isdir(scan_directory):
-    print('Error: %s is not a directory or doesn\'t exist. Check your %s config file.' % (scan_directory, config_file))
+    exit_with_msg('Error: %s is not a directory or doesn\'t exist. Check your %s config file.' % (scan_directory, config_file))
+
+
+def exit_with_msg(message):
+    print(message)
     exit(1)
 
 
@@ -48,6 +50,7 @@ def track_resolution(track):
         return 'sd'
     else:
         return ''
+
 
 # Checking if a scan has been run previously
 if os.path.isfile(pickle_file):
