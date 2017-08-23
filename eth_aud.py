@@ -18,7 +18,7 @@ with request.urlopen('https://api.coinmarketcap.com/v1/ticker/ethereum/?convert=
     data = json.loads(url.read().decode())
     update = datetime.datetime.fromtimestamp(
         int(data[0]['last_updated'])
-        ).strftime('%Y-%m-%d %H:%M:%S')
+    ).strftime('%Y-%m-%d %H:%M:%S')
     eth_aud = float(data[0]['price_aud'])
     eth_usd = float(data[0]['price_usd'])
     eth_btc = float(data[0]['price_btc']) * 1000
@@ -27,10 +27,10 @@ with request.urlopen('https://api.coinmarketcap.com/v1/ticker/ethereum/?convert=
         if data[0][field] is None:
             data[0][field] = 0
 
-    #if data[0]['percent_change_1h'] is not None:
-    #    pct_1h = data[0]['percent_change_1h'] + '%'
-    #else:
-    #    pct_1h = 'N/A'
+    # if data[0]['percent_change_1h'] is not None:
+    #     pct_1h = data[0]['percent_change_1h'] + '%'
+    # else:
+    #     pct_1h = 'N/A'
 
     pct_1h = data[0]['percent_change_1h'] + '%'
     pct_1d = data[0]['percent_change_24h'] + '%'

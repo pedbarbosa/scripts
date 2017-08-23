@@ -8,7 +8,7 @@ import urllib2
 from HTMLParser import HTMLParser
 
 
-class color:
+class Color:
     RED = '\033[31m'
     GREEN = '\033[32m'
     YELLOW = '\033[33m'
@@ -61,31 +61,31 @@ def movie_update(count, title, rating, old_votes, xbmc_year, parser):
     new_votes = int(parser.count.replace(',', ''))
 
     if old_rating > new_rating:
-        new_rating = color.LIGHTMAGENTA + "%.1f" % new_rating + color.END
+        new_rating = Color.LIGHTMAGENTA + "%.1f" % new_rating + Color.END
     elif old_rating < new_rating:
-        new_rating = color.LIGHTCYAN + "%.1f" % new_rating + color.END
+        new_rating = Color.LIGHTCYAN + "%.1f" % new_rating + Color.END
 
     if old_votes > new_votes:
-        new_votes = color.LIGHTMAGENTA + "%s" % new_votes + color.END
+        new_votes = Color.LIGHTMAGENTA + "%s" % new_votes + Color.END
     elif old_votes < new_votes:
-        new_votes = color.LIGHTCYAN + "%s" % new_votes + color.END
+        new_votes = Color.LIGHTCYAN + "%s" % new_votes + Color.END
 
     title = re.sub(r'[^\x00-\x7F]+', ' ', title)
-    title = color.GREEN + color.UNDERLINE + title + " (" + xbmc_year + ")" + color.END
+    title = Color.GREEN + Color.UNDERLINE + title + " (" + xbmc_year + ")" + Color.END
 
-    if (old_rating == new_rating and old_votes == new_votes):
-        print "#%s " % count + title + ": %.1f* (%s)" % (old_rating, old_votes) + color.YELLOW + " N/C" + color.END
+    if old_rating == new_rating and old_votes == new_votes:
+        print("#%s " % count + title + ": %.1f* (%s)" % (old_rating, old_votes) + Color.YELLOW + " N/C" + Color.END)
     else:
-        print "#%s " % count + title + ": %.1f* >> %s* (%s >> %s)" % (old_rating, new_rating, old_votes, new_votes)
+        print("#%s " % count + title + ": %.1f* >> %s* (%s >> %s)" % (old_rating, new_rating, old_votes, new_votes))
 
 
-def movie_error(title, message):
-    message = color.LIGHTRED + message + color.END
-    print color.GREEN + color.UNDERLINE + title + color.END + ": " + message
+def movie_error(t, m):
+    m = Color.LIGHTRED + m + Color.END
+    print(Color.GREEN + Color.UNDERLINE + t + Color.END + ": " + m)
 
 
 def usage():
-    print "Switches: -h help -s start -d debug"
+    print("Switches: -h help -s start -d debug")
 
 
 try:
@@ -109,13 +109,13 @@ for o, a in opts:
 
 cnx = mysql.connector.connect(user='kodi', password='kodi',
                               host='127.0.0.1',
-                              database='MyVideos99')
+                              database='MyVideos107')
 cursor = cnx.cursor(buffered=True)
 update = cnx.cursor()
 
 query = "SELECT idMovie, c00, c04, c05, c07, c09 from movie ORDER BY c00 LIMIT %s,3000" % start
 if debug == 1:
-    print "Executing SQL: %s" % query
+    print("Executing SQL: %s" % query)
 cursor.execute(query)
 
 stats_count = stats_success = stats_old_votes = stats_new_votes = 0
@@ -125,22 +125,22 @@ for (xbmc_id, title, xbmc_votes, xbmc_rating, xbmc_year, imdb_id) in cursor:
     if imdb_id != '':
         url = "http://www.imdb.com/title/%s" % imdb_id
         if debug == 1:
-            print "Fetching HTML: %s" % url
+            print("Fetching HTML: %s" % url)
         page = urllib2.urlopen(url)
         parser = MyHTMLParser()
 
         if debug == 1:
-            print "Processing HTML..."
+            print("Processing HTML...")
         for line in page:
             if debug == 1:
-                print "Processing line: %s" % line
+                print("Processing line: %s" % line)
             parser.feed(line.decode('utf-8'))
         if parser.value != 0:
             xbmc_votes = int(xbmc_votes.replace(',', ''))
             if int(parser.count.replace(',', '')) != xbmc_votes:
                 query = "UPDATE movie SET c05=\'%s\', c04=\'%s\' WHERE idMovie=\'%s\'" % (parser.value, parser.count, xbmc_id)
                 if debug == 1:
-                    print "Updating SQL with new rating and vote count..."
+                    print("Updating SQL with new rating and vote count...")
                 update.execute(query)
                 cnx.commit()
             movie_count = int(start) + stats_count - 1
@@ -156,7 +156,7 @@ for (xbmc_id, title, xbmc_votes, xbmc_rating, xbmc_year, imdb_id) in cursor:
 cnx.close()
 
 if stats_count > 0:
-    print "\nStatistics:"
-    print "%s out of %s processed successfully" % (stats_success, stats_count)
+    print("\nStatistics:")
+    print("%s out of %s processed successfully" % (stats_success, stats_count))
 if stats_old_votes != stats_new_votes:
-    print "Total vote count changed from %s to %s" % (stats_old_votes, stats_new_votes)
+    print("Total vote count changed from %s to %s" % (stats_old_votes, stats_new_votes))
