@@ -55,23 +55,23 @@ class MyHTMLParser(HTMLParser):
             self.count = data
 
 
-def movie_update(count, title, rating, old_votes, xbmc_year, parser):
-    old_rating = float(rating)
-    new_rating = float(parser.value)
-    new_votes = int(parser.count.replace(',', ''))
+def movie_update(count, title, old_rating, old_votes, premiered, imdb_rating):
+    old_rating = float(old_rating)
+    new_rating = float(imdb_rating.value)
+    new_votes = int(imdb_rating.count.replace(',', ''))
 
     if old_rating > new_rating:
-        new_rating = Color.LIGHTMAGENTA + "%.1f" % new_rating + Color.END
+        new_rating = Color.LIGHTMAGENTA + '%.1f' % new_rating + Color.END
     elif old_rating < new_rating:
-        new_rating = Color.LIGHTCYAN + "%.1f" % new_rating + Color.END
+        new_rating = Color.LIGHTCYAN + '%.1f' % new_rating + Color.END
 
     if old_votes > new_votes:
-        new_votes = Color.LIGHTMAGENTA + "%s" % new_votes + Color.END
+        new_votes = Color.LIGHTMAGENTA + '%s' % new_votes + Color.END
     elif old_votes < new_votes:
-        new_votes = Color.LIGHTCYAN + "%s" % new_votes + Color.END
+        new_votes = Color.LIGHTCYAN + '%s' % new_votes + Color.END
 
     title = re.sub(r'[^\x00-\x7F]+', ' ', title)
-    title = Color.GREEN + Color.UNDERLINE + title + " (" + xbmc_year + ")" + Color.END
+    title = Color.GREEN + Color.UNDERLINE + title + " (" + premiered + ")" + Color.END
 
     if old_rating == new_rating and old_votes == new_votes:
         print("#%s " % count + title + ": %.1f* (%s)" % (old_rating, old_votes) + Color.YELLOW + " N/C" + Color.END)
@@ -81,31 +81,46 @@ def movie_update(count, title, rating, old_votes, xbmc_year, parser):
 
 def movie_error(t, m):
     m = Color.LIGHTRED + m + Color.END
-    print(Color.GREEN + Color.UNDERLINE + t + Color.END + ": " + m)
+    print(Color.GREEN + Color.UNDERLINE + t + Color.END + ': ' + m)
+
+
+def debug_msg(m):
+    if debug == 1:
+        print(m)
 
 
 def usage():
-    print("Switches: -h help -s start -d debug")
+    print('''Usage:
+    kodi_imdb.py [options]
+    
+Options:
+    -d, --debug     Provide debug level information
+    -h, --help      Show usage
+    --limit         Set number of titles to process (default '100')
+    --start         Set title number to start processing from (default '0')
+''')
 
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "hds:", ["help", "debug", "start="])
+    opts, args = getopt.getopt(sys.argv[1:], 'hdls:', ['help', 'debug', 'limit=', 'start='])
 except getopt.GetoptError as err:
-        print(err)
-        usage()
-        sys.exit(2)
-start = 0
-debug = 0
+    usage()
+    print(err)
+    sys.exit(2)
+start = debug = 0
+limit = 100
 for o, a in opts:
-    if o in ("-h", "--help"):
+    if o in ('-h', '--help'):
         usage()
         sys.exit()
-    elif o in ("-d", "--debug"):
+    elif o in ('-d', '--debug'):
         debug = 1
-    elif o in ("-s", "--start"):
+    elif o == '--limit':
+        limit = a
+    elif o == '--start':
         start = a
     else:
-        assert False, "unhandled option"
+        assert False, 'unhandled option'
 
 cnx = mysql.connector.connect(user='kodi', password='kodi',
                               host='127.0.0.1',
@@ -113,56 +128,50 @@ cnx = mysql.connector.connect(user='kodi', password='kodi',
 cursor = cnx.cursor(buffered=True)
 update = cnx.cursor()
 
-query = "SELECT idMovie, c00, c04, c05, c07, c09 from movie ORDER BY c00 LIMIT %s,3000" % start
-if debug == 1:
-    print("Executing SQL: %s" % query)
+query = 'SELECT idMovie, c00 as title, votes, rating, premiered, uniqueid_value from movie_view ORDER BY c00 LIMIT %s,%s' % (start, limit)
+debug_msg('Executing SQL: %s' % query)
 cursor.execute(query)
 
 stats_count = stats_success = stats_old_votes = stats_new_votes = 0
 
-for (xbmc_id, title, xbmc_votes, xbmc_rating, xbmc_year, imdb_id) in cursor:
+for (kodi_id, kodi_title, kodi_votes, kodi_rating, kodi_premiered, imdb_id) in cursor:
     stats_count += 1
     if imdb_id != '':
-        url = "http://www.imdb.com/title/%s" % imdb_id
-        if debug == 1:
-            print("Fetching HTML: %s" % url)
+        url = 'http://www.imdb.com/title/%s' % imdb_id
         try:
+            debug_msg('Fetching HTML: %s' % url)
             page = urllib2.urlopen(url)
         except urllib2.HTTPError as err:
             if err.code == 404:
-                print("Got 404 when trying to retrieve %s for %s" % (url, title))
+                movie_error(kodi_title, 'Got 404 when trying to retrieve %s' % url)
+                continue
             else:
                 raise
         parser = MyHTMLParser()
 
-        if debug == 1:
-            print("Processing HTML...")
+        debug_msg('Processing HTML...')
         for line in page:
-            if debug == 1:
-                print("Processing line: %s" % line)
             parser.feed(line.decode('utf-8'))
         if parser.value != 0:
-            xbmc_votes = int(xbmc_votes.replace(',', ''))
-            if int(parser.count.replace(',', '')) != xbmc_votes:
-                query = "UPDATE movie SET c05=\'%s\', c04=\'%s\' WHERE idMovie=\'%s\'" % (parser.value, parser.count, xbmc_id)
-                if debug == 1:
-                    print("Updating SQL with new rating and vote count...")
+            imdb_votes = int(parser.count.replace(',', ''))
+            if imdb_votes != kodi_votes:
+                query = 'UPDATE movie_view SET rating="%s", votes="%s" WHERE idMovie="%s"' % (parser.value, imdb_votes, kodi_id)
+                debug_msg('Updating SQL: %s' % query)
                 update.execute(query)
                 cnx.commit()
             movie_count = int(start) + stats_count - 1
-            movie_update(movie_count, title, xbmc_rating, xbmc_votes, xbmc_year, parser)
+            movie_update(movie_count, kodi_title, kodi_rating, kodi_votes, kodi_premiered, parser)
             stats_success += 1
-            stats_old_votes += xbmc_votes
+            stats_old_votes += kodi_votes
             stats_new_votes += int(parser.count.replace(',', ''))
         else:
-            movie_error(title, "Problem parsing IMDB contents!")
+            movie_error(kodi_title, 'Problem parsing IMDb contents!')
     else:
-        movie_error(title, "No IMDB title id on XBMC!")
-
+        movie_error(kodi_title, 'No IMDb title id on Kodi!')
 cnx.close()
 
 if stats_count > 0:
-    print("\nStatistics:")
-    print("%s out of %s processed successfully" % (stats_success, stats_count))
+    print('\nStatistics:')
+    print('%s out of %s processed successfully' % (stats_success, stats_count))
 if stats_old_votes != stats_new_votes:
-    print("Total vote count changed from %s to %s" % (stats_old_votes, stats_new_votes))
+    print('Total vote count changed from %s to %s' % (stats_old_votes, stats_new_votes))
