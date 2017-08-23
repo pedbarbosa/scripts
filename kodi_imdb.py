@@ -71,7 +71,7 @@ def movie_update(count, title, old_rating, old_votes, premiered, imdb_rating):
         new_votes = Color.LIGHTCYAN + '%s' % new_votes + Color.END
 
     title = re.sub(r'[^\x00-\x7F]+', ' ', title)
-    title = Color.GREEN + Color.UNDERLINE + title + " (" + premiered + ")" + Color.END
+    title = Color.GREEN + Color.UNDERLINE + title + " (" + premiered.split('-')[0] + ")" + Color.END
 
     if old_rating == new_rating and old_votes == new_votes:
         print("#%s " % count + title + ": %.1f* (%s)" % (old_rating, old_votes) + Color.YELLOW + " N/C" + Color.END)
