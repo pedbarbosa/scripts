@@ -126,7 +126,13 @@ for (xbmc_id, title, xbmc_votes, xbmc_rating, xbmc_year, imdb_id) in cursor:
         url = "http://www.imdb.com/title/%s" % imdb_id
         if debug == 1:
             print("Fetching HTML: %s" % url)
-        page = urllib2.urlopen(url)
+        try:
+            page = urllib2.urlopen(url)
+        except urllib2.HTTPError as err:
+            if err.code == 404:
+                print("Got 404 when trying to retrieve %s for %s" % (url, title))
+            else:
+                raise
         parser = MyHTMLParser()
 
         if debug == 1:
