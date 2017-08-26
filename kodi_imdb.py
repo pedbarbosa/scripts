@@ -55,8 +55,18 @@ class MyHTMLParser(HTMLParser):
             self.count = data
 
 
+def check_empty_rating():
+    # Handle empty rating in Kodi
+    global kodi_rating, kodi_votes
+    if kodi_rating is not None:
+        kodi_rating = float(kodi_rating)
+    else:
+        kodi_rating = 0
+    if kodi_votes is None:
+        kodi_votes = 0
+
+
 def movie_update(count, title, old_rating, old_votes, premiered, imdb_rating):
-    old_rating = float(old_rating)
     new_rating = float(imdb_rating.value)
     new_votes = int(imdb_rating.count.replace(',', ''))
 
@@ -160,6 +170,7 @@ for (kodi_id, kodi_title, kodi_votes, kodi_rating, kodi_premiered, imdb_id) in c
                 update.execute(query)
                 cnx.commit()
             movie_count = int(start) + stats_count - 1
+            check_empty_rating()
             movie_update(movie_count, kodi_title, kodi_rating, kodi_votes, kodi_premiered, parser)
             stats_success += 1
             stats_old_votes += kodi_votes
