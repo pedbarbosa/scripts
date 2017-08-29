@@ -4,7 +4,7 @@ SOURCE=~/downloads/
 DESTINATION=~/unpack/
 EXTENSION="*.mkv"
 
-SEARCH=$(find $SOURCE -type f -name $EXTENSION -cmin -$INTERVAL | xargs -i basename "{}")
+SEARCH=$(find $SOURCE -type f -name $EXTENSION -cmin -$INTERVAL | sort | xargs -i basename "{}")
 SEARCH_EXIT=$?
 
 if [[ "$SEARCH_EXIT" == 0 ]]
@@ -31,5 +31,5 @@ then
         ls -l $DESTINATION
     fi
 else
-    echo "There were no .mkv files created within the last $INTERVAL minutes."
+    echo "There were no $EXTENSION files created within the last $INTERVAL minutes."
 fi
