@@ -4,7 +4,7 @@ SOURCE=~/downloads/
 DESTINATION=~/unpack/
 EXTENSION="*.mkv"
 
-SEARCH=$(find $SOURCE -type f -name $EXTENSION -cmin -$INTERVAL | sort | xargs -i basename "{}")
+SEARCH=$(find ${SOURCE} -type f -name ${EXTENSION} -cmin -${INTERVAL} | sort | xargs -i basename "{}")
 SEARCH_EXIT=$?
 
 if [[ "$SEARCH_EXIT" == 0 ]]
@@ -19,16 +19,15 @@ then
     then
         echo
         echo "Copying files to $DESTINATION..."
-        find $SOURCE -type f -name $EXTENSION -cmin -$INTERVAL | xargs -i cp {} $DESTINATION
-        if [[ "$?" == 0 ]]
-        then
+        find ${SOURCE} -type f -name ${EXTENSION} -cmin -${INTERVAL} | xargs -i cp {} ${DESTINATION}
+        if [[ "$?" == 0 ]]; then
             echo "Successfully copied files."
         else
             echo "Copy process failed."
         fi
         echo
         echo "Listing contents of $DESTINATION:"
-        ls -l $DESTINATION
+        ls -l ${DESTINATION}
     fi
 else
     echo "There were no $EXTENSION files created within the last $INTERVAL minutes."
