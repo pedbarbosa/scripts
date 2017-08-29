@@ -148,8 +148,8 @@ for (kodi_id, kodi_title, kodi_votes, kodi_rating, kodi_premiered, imdb_id) in c
     stats_count += 1
     if imdb_id != '':
         url = 'http://www.imdb.com/title/%s' % imdb_id
+        debug_msg('Fetching HTML: %s' % url)
         try:
-            debug_msg('Fetching HTML: %s' % url)
             page = urllib2.urlopen(url)
         except urllib2.HTTPError as err:
             if err.code == 404:
