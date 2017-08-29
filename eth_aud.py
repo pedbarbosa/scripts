@@ -26,12 +26,6 @@ with request.urlopen('https://api.coinmarketcap.com/v1/ticker/ethereum/?convert=
     for field in pct_fields:
         if data[0][field] is None:
             data[0][field] = 0
-
-    # if data[0]['percent_change_1h'] is not None:
-    #     pct_1h = data[0]['percent_change_1h'] + '%'
-    # else:
-    #     pct_1h = 'N/A'
-
     pct_1h = data[0]['percent_change_1h'] + '%'
     pct_1d = data[0]['percent_change_24h'] + '%'
     pct_7d = data[0]['percent_change_7d'] + '%'
