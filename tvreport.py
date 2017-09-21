@@ -66,12 +66,13 @@ config_file = os.path.expanduser('~') + '/.tvreport'
 
 # Check configuration file
 if not os.path.isfile(config_file):
-    exit_with_msg('Error: Config file %s missing. Copy tvreport.cfg to %s and configure as required.' % (config_file, config_file))
+    exit_with_msg("Error: Config file '%s' missing. Copy 'tvreport.cfg' to '%s' and configure as required." % (
+        config_file, os.path.expanduser('~')))
 else:
     exec(compile(open(config_file, "rb").read(), config_file, 'exec'))
 
 if not os.path.isdir(scan_directory):
-    exit_with_msg('Error: %s is not a directory or doesn\'t exist. Check your %s config file.' % (scan_directory, config_file))
+    exit_with_msg('Error: %s is an invalid directory. Check your %s config file.' % (scan_directory, config_file))
 
 # Checking if a scan has been run previously
 if os.path.isfile(pickle_file):
