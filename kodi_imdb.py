@@ -4,8 +4,7 @@ import getopt
 import mysql.connector
 import re
 import sys
-import urllib2
-from HTMLParser import HTMLParser
+from imdb import IMDb
 
 
 class Color:
@@ -28,33 +27,6 @@ class Color:
     END = '\033[0m'
 
 
-class MyHTMLParser(HTMLParser):
-    ratingCountOpen = False
-    ratingValueOpen = False
-
-    value = 0
-    count = 0
-
-    def handle_starttag(self, tag, attrs):
-        if tag == 'span':
-            for att in attrs:
-                if att[0] == 'itemprop' and att[1] == 'ratingValue':
-                    self.ratingValueOpen = True
-                if att[0] == 'itemprop' and att[1] == 'ratingCount':
-                    self.ratingCountOpen = True
-
-    def handle_endtag(self, tag):
-        if tag == 'span':
-            self.ratingCountOpen = False
-            self.ratingValueOpen = False
-
-    def handle_data(self, data):
-        if self.ratingValueOpen:
-            self.value = data
-        if self.ratingCountOpen:
-            self.count = data
-
-
 def check_empty_rating():
     # Handle empty rating in Kodi
     global kodi_rating, kodi_votes
@@ -66,9 +38,25 @@ def check_empty_rating():
         kodi_votes = 0
 
 
-def movie_update(count, title, old_rating, old_votes, premiered, imdb_rating):
-    new_rating = float(imdb_rating.value)
-    new_votes = int(imdb_rating.count.replace(',', ''))
+def movie_details(imdb_id_no_tt):
+    for _ in range(5):
+        try:
+            return ia.get_movie(imdb_id_no_tt)
+        except KeyboardInterrupt:
+            print('\nCancelled by user, while retrieving IMDB title %s' % imdb_id_no_tt)
+            sys.exit()
+        except IMDbDataAccessError:
+            print('Error retrieving information for IMDB title %s' % imdb_id_no_tt)
+            sleep(5)
+        except:
+            print "Unexpected error:", sys.exc_info()[0]
+            sleep(5)
+
+
+def movie_update(count, title, old_rating, old_votes,
+                 premiered, imdb_votes, imdb_rating):
+    new_rating = float(imdb_rating)
+    new_votes = int(imdb_votes)
 
     if old_rating > new_rating:
         new_rating = Color.LIGHTMAGENTA + '%.1f' % new_rating + Color.END
@@ -87,11 +75,23 @@ def movie_update(count, title, old_rating, old_votes, premiered, imdb_rating):
         print("#%s " % count + title + ": %.1f* (%s)" % (old_rating, old_votes) + Color.YELLOW + " N/C" + Color.END)
     else:
         print("#%s " % count + title + ": %.1f* >> %s* (%s >> %s)" % (old_rating, new_rating, old_votes, new_votes))
+        query = 'UPDATE movie_view SET rating="%s", votes="%s" WHERE idMovie="%s"' % (imdb_rating, imdb_votes, kodi_id)
+        debug_msg('Updating SQL: %s' % query)
+        update.execute(query)
+        cnx.commit()
 
 
 def movie_error(t, m):
     m = Color.LIGHTRED + m + Color.END
     print(Color.GREEN + Color.UNDERLINE + t + Color.END + ': ' + m)
+
+
+def print_statistics():
+    if stats_count > 0:
+        print('\nStatistics:')
+        print('%s out of %s processed successfully' % (stats_success, stats_count))
+    if stats_old_votes != stats_new_votes:
+        print('Total vote count changed from %s to %s' % (stats_old_votes, stats_new_votes))
 
 
 def debug_msg(m):
@@ -102,7 +102,7 @@ def debug_msg(m):
 def usage():
     print('''Usage:
     kodi_imdb.py [options]
-    
+
 Options:
     -d, --debug     Provide debug level information
     -h, --help      Show usage
@@ -138,51 +138,29 @@ cnx = mysql.connector.connect(user='kodi', password='kodi',
 cursor = cnx.cursor(buffered=True)
 update = cnx.cursor()
 
-query = 'SELECT idMovie, c00 as title, votes, rating, premiered, uniqueid_value from movie_view ORDER BY c00 LIMIT %s,%s' % (start, limit)
+query = 'SELECT idMovie, c00 as title, votes, rating, premiered, uniqueid_value from movie_view ORDER BY idMovie DESC LIMIT %s,%s' % (start, limit)
 debug_msg('Executing SQL: %s' % query)
 cursor.execute(query)
 
 stats_count = stats_success = stats_old_votes = stats_new_votes = 0
 
+ia = IMDb()
+
 for (kodi_id, kodi_title, kodi_votes, kodi_rating, kodi_premiered, imdb_id) in cursor:
     stats_count += 1
     if imdb_id != '':
-        url = 'http://www.imdb.com/title/%s' % imdb_id
-        debug_msg('Fetching HTML: %s' % url)
-        try:
-            page = urllib2.urlopen(url)
-        except urllib2.HTTPError as err:
-            if err.code == 404:
-                movie_error(kodi_title, 'Got 404 when trying to retrieve %s' % url)
-                continue
-            else:
-                raise
-        parser = MyHTMLParser()
-
-        debug_msg('Processing HTML...')
-        for line in page:
-            parser.feed(line.decode('utf-8'))
-        if parser.value != 0:
-            imdb_votes = int(parser.count.replace(',', ''))
-            if imdb_votes != kodi_votes:
-                query = 'UPDATE movie_view SET rating="%s", votes="%s" WHERE idMovie="%s"' % (parser.value, imdb_votes, kodi_id)
-                debug_msg('Updating SQL: %s' % query)
-                update.execute(query)
-                cnx.commit()
-            movie_count = int(start) + stats_count - 1
-            check_empty_rating()
-            movie_update(movie_count, kodi_title, kodi_rating, kodi_votes, kodi_premiered, parser)
-            stats_success += 1
-            stats_old_votes += kodi_votes
-            stats_new_votes += int(parser.count.replace(',', ''))
-        else:
-            movie_error(kodi_title, 'Problem parsing IMDb contents!')
+        debug_msg('Checking IMDb title %s' % imdb_id)
+        movie = movie_details(imdb_id[2:])
+        imdb_votes = movie['votes']
+        imdb_rating = movie['rating']
+        movie_count = int(start) + stats_count - 1
+        check_empty_rating()
+        movie_update(movie_count, kodi_title, kodi_rating, kodi_votes, kodi_premiered, imdb_votes, imdb_rating)
+        stats_success += 1
+        stats_old_votes += kodi_votes
+        stats_new_votes += int(imdb_votes)
     else:
         movie_error(kodi_title, 'No IMDb title id on Kodi!')
 cnx.close()
 
-if stats_count > 0:
-    print('\nStatistics:')
-    print('%s out of %s processed successfully' % (stats_success, stats_count))
-if stats_old_votes != stats_new_votes:
-    print('Total vote count changed from %s to %s' % (stats_old_votes, stats_new_votes))
+print_statistics()
