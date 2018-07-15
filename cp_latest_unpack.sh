@@ -4,6 +4,7 @@ SOURCE=~/downloads/
 DESTINATION=~/unpack/
 EXTENSION="*.mkv"
 
+cd
 SEARCH=$(find ${SOURCE} -type f -name ${EXTENSION} -cmin -${INTERVAL} | sort | xargs -i basename "{}")
 SEARCH_EXIT=$?
 
@@ -32,3 +33,5 @@ then
 else
     echo "There were no $EXTENSION files created within the last $INTERVAL minutes."
 fi
+
+cd -
