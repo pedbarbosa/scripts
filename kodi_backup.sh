@@ -1,7 +1,7 @@
 #!/bin/bash
 MYSQL_USER=kodi
 MYSQL_PASS=kodi
-MYSQL_DB=MyVideos107
+MYSQL_DB=MyVideos116
 
 BACKUP_FILE=/data/backup/kodi-$(date +"%Y-%m-%d_%H-%M").sql
 MYSQL_BIN=`which mysqldump`
