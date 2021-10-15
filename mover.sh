@@ -1,4 +1,5 @@
 #!/bin/bash
+set +x
 LOCKFILE=/tmp/mover.lock
 CONFIGFILE=~/.mover
 

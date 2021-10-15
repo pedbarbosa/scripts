@@ -1,13 +1,22 @@
 #!/bin/bash
+clock () { echo ">> [`date +%H:%M:%S`] "; }
 
+echo `clock`"Root filesystem state prior to optimisation:"
 btrfs filesystem df /
+echo ''
 
+echo `clock`"Starting defragmentation ..."
 btrfs filesystem defragment -r /
+echo ''
 
+echo `clock`"Starting scrubbing and sleeping for 2 minutes ..."
 btrfs scrub start /
-
 sleep 120
+echo ''
 
+echo `clock`"Starting rebalancing ..."
 btrfs balance start --full-balance /
+echo ''
 
+echo `clock`"Root filesystem state after optimisation:"
 btrfs filesystem df /
