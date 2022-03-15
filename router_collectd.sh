@@ -15,9 +15,13 @@ DELTA=$((CURRENT_TIME-LAST_TIMESTAMP))
 SECONDS=$(($MAX_AGE*60))
 if [[ ${DELTA} -gt ${SECONDS} ]]; then
     echo "Newest update in '${SCAN_PATH}' was ${DELTA} seconds ago, which exceeds the threshold of ${SECONDS}."
-    echo "Stopping 'collectd' in router..."
+    echo "Restarting 'collectd' locally ..."
+    sudo systemctl restart collectd
+    sleep 1
+    echo "Stopping 'collectd' in router ..."
     ssh router '/etc/init.d/collectd stop'
     sleep 1
-    echo "Starting 'collectd' in router..."
+    echo "Starting 'collectd' in router ..."
     ssh router '/etc/init.d/collectd start'
 fi
+
