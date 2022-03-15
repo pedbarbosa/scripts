@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+IMAGES=$(docker images | grep -vE '^[REPOSITORY|postfix]' | cut -d ' ' -f1 | sort | uniq)
+for IMAGE in $IMAGES; do
+    echo -e "\nChecking if '$IMAGE' has updates ..."
+    docker pull $IMAGE
+    # echo -e '\n'
+done
+
+
+exit 0
+ | xargs -L1 docker pull
+
+
+# alias docker-update-all="docker images | grep '/' | grep latest | cut -d ' ' -f1 | xargs -L1 docker pull"
+alias docker-update-all=
+docker images | grep -vE '^[REPOSITORY|postfix]' | cut -d ' ' -f1 | sort | uniq | xargs -L1 docker pull
+
